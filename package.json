@@ -1,0 +1,23 @@
+{
+  "name": "bulwark-heroes",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Bulwark Heroes — peer-to-peer co-op hero defense with powers, loot, and persistent summons.",
+  "scripts": {
+    "dev": "vite --host",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --host",
+    "typecheck": "tsc --noEmit",
+    "check:sim": "node scripts/check-sim.mjs",
+    "check:clients": "node scripts/two-client-check.mjs",
+    "assets": "node scripts/fetch-assets.mjs"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3",
+    "vite": "^5.4.10"
+  },
+  "dependencies": {
+    "peerjs": "^1.5.4"
+  }
+}

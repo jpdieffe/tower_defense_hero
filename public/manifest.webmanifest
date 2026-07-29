@@ -1,0 +1,18 @@
+{
+  "name": "Bulwark — Co-op Tower Defense",
+  "short_name": "Bulwark",
+  "start_url": "./",
+  "display": "fullscreen",
+  "orientation": "any",
+  "background_color": "#0b0f18",
+  "theme_color": "#0b0f18",
+  "description": "A two-player peer-to-peer co-op tower defense game that runs in any phone browser.",
+  "icons": [
+    {
+      "src": "./assets/sprites/towerDefense_tilesheet.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

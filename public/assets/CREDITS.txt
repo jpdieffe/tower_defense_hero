@@ -1,0 +1,12 @@
+Third-party assets bundled with Bulwark
+=======================================
+
+Sprites : "Tower Defense (Top-Down)" by Kenney - https://kenney.nl/assets/tower-defense-top-down
+Audio   : "Interface Sounds"        by Kenney - https://kenney.nl/assets/interface-sounds
+Audio   : "Impact Sounds"           by Kenney - https://kenney.nl/assets/impact-sounds
+Music   : "Music Jingles"           by Kenney - https://kenney.nl/assets/music-jingles
+Audio   : "Magic Spell SFX"         by JaggedStone - https://opengameart.org/content/magic-spell-sfx
+
+All of the above are released under Creative Commons CC0 1.0 Universal
+(public domain dedication): https://creativecommons.org/publicdomain/zero/1.0/
+No attribution is required, but it is appreciated - so, thanks Kenney!
