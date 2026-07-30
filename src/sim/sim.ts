@@ -354,10 +354,15 @@ function cmdAbility(ctx: Ctx, p: PlayerState, skillId: number, x: Fx, y: Fx): vo
     spawnSentry(ctx, p.idx, tx, ty, -1, effect === 'totem' ? TOWER.Totem : TOWER.Sentinel);
     emit(ctx, EventKind.HeroAbility, tx, ty, AbilityKind.Sentry, ab.radius, p.idx);
   } else if (effect === 'guardian' || effect === 'wolves') {
+    if (effect === 'guardian' && skillId === 10) {
+      spawnSentry(ctx, p.idx, h.x, h.y, ab.duration ?? sec(25), TOWER.Barracks, 2);
+      emit(ctx, EventKind.SoldierSpawn, h.x, h.y, TOWER.Barracks, 0, p.idx);
+    } else {
     const summonDef = effect === 'wolves' ? TOWER.Kennel : (skillId === 25 ? TOWER.Rune : TOWER.Templar);
     const duration = effect === 'wolves' ? -2 : -1;
     spawnSentry(ctx, p.idx, tx - fx(0.6), ty, duration, summonDef);
     spawnSentry(ctx, p.idx, tx + fx(0.6), ty, duration, summonDef);
+    }
     emit(ctx, EventKind.HeroAbility, tx, ty, AbilityKind.Sentry, ab.radius, p.idx);
   } else switch (baseAb.kind) {
     case AbilityKind.ShieldSlam: {
@@ -1132,6 +1137,10 @@ function updateTowers(ctx: Ctx): void {
       t.temp--;
       if (t.temp === 0) continue;
     }
+    if (t.invested === -2) {
+      const hero = s.players[t.owner]?.hero;
+      if (hero?.alive) { t.rx = hero.x; t.ry = hero.y; }
+    }
     if (t.cd > 0) t.cd--;
 
     const st = effStats(ctx, t, i);
@@ -1452,9 +1461,11 @@ function maintainSquad(ctx: Ctx, t: Tower, st: TowerStats): void {
   if (t.cd > 0) return;
   // Power-summoned creature packs are finite: create the initial pack once,
   // then let injuries and deaths remain meaningful.
-  if (t.temp === -2 && t.charge >= st.unitCount) return;
+  const finitePack = t.temp === -2 || t.invested < 0;
+  const unitCap = t.invested === -2 ? 1 : st.unitCount;
+  if (finitePack && t.charge >= unitCap) return;
   const alive = squadSize(s, t.id);
-  if (alive >= st.unitCount) return;
+  if (alive >= unitCap) return;
 
   // Pick the lowest free formation slot so the line always fills front first.
   const taken: boolean[] = [];
@@ -1483,10 +1494,10 @@ function maintainSquad(ctx: Ctx, t: Tower, st: TowerStats): void {
     anim: 0,
   };
   s.soldiers.push(sd);
-  if (t.temp === -2) t.charge++;
+  if (finitePack) t.charge++;
   // Between waves the hut refills almost instantly, so every fight starts
   // with a full line.
-  t.cd = t.temp === -2 ? sec(0.15) : s.phase === Phase.Build ? sec(0.4) : Math.max(1, st.unitRespawn);
+  t.cd = finitePack ? sec(0.15) : s.phase === Phase.Build ? sec(0.4) : Math.max(1, st.unitRespawn);
   emit(ctx, EventKind.SoldierSpawn, x, y, t.defId, slot, t.owner);
 }
 
@@ -1583,7 +1594,7 @@ function updateSoldier(ctx: Ctx, t: Tower, st: TowerStats, sd: Soldier): void {
     sd.hp -= Math.max(1, Math.floor(dps / 5) - st.unitArmor);
   }
 
-  if (t.temp !== -2 && !inCombat && st.unitRegen > 0 && sd.hp < sd.maxHp) {
+  if (t.temp !== -2 && t.invested >= 0 && !inCombat && st.unitRegen > 0 && sd.hp < sd.maxHp) {
     sd.regenAcc += st.unitRegen;
     const heal = Math.floor(sd.regenAcc / TICK_RATE);
     if (heal > 0) {
@@ -1745,14 +1756,17 @@ function spawnWeaponProjectile(
   ctx.s.projectiles.push(p);
 }
 
-function spawnSentry(ctx: Ctx, owner: number, x: Fx, y: Fx, duration: number, defId: number = TOWER.Sentinel): void {
+function spawnSentry(
+  ctx: Ctx, owner: number, x: Fx, y: Fx, duration: number,
+  defId: number = TOWER.Sentinel, hiddenMode = 0,
+): void {
   const s = ctx.s;
   // Persistent companions are intentionally capped per hero. This keeps long
   // co-op sessions bounded without making an existing summon disappear.
   if (duration < 0 && s.towers.filter((t) => t.owner === owner && t.temp < 0).length >= 12) return;
   let cx = Math.floor(x / FX_ONE);
   let cy = Math.floor(y / FX_ONE);
-  if (duration !== -2) {
+  if (duration !== -2 && hiddenMode === 0) {
     const open = nearestOpenGround(ctx, cx, cy);
     if (!open) return;
     cx = open.x; cy = open.y;
@@ -1772,7 +1786,7 @@ function spawnSentry(ctx: Ctx, owner: number, x: Fx, y: Fx, duration: number, de
     cd: 0,
     targetMode: TargetMode.First,
     targetId: 0,
-    invested: 0,
+    invested: hiddenMode > 0 ? -hiddenMode : 0,
     charge: 0,
     temp: duration,
     kills: 0,
@@ -2025,8 +2039,8 @@ function reap(ctx: Ctx): void {
   if (s.enemies.some((e) => e.dead)) s.enemies = s.enemies.filter((e) => !e.dead);
   if (s.projectiles.some((p) => p.life <= 0)) s.projectiles = s.projectiles.filter((p) => p.life > 0);
   if (s.grounds.some((g) => g.life <= 0)) s.grounds = s.grounds.filter((g) => g.life > 0);
-  if (s.towers.some((t) => t.temp === 0 && t.invested === 0)) {
-    s.towers = s.towers.filter((t) => !(t.temp === 0 && t.invested === 0));
+  if (s.towers.some((t) => t.temp === 0 && t.invested <= 0)) {
+    s.towers = s.towers.filter((t) => !(t.temp === 0 && t.invested <= 0));
   }
   // Soldiers die with their hut.
   if (s.soldiers.some((sd) => sd.hp <= 0 || !findTower(s, sd.towerId))) {

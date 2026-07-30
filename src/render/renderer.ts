@@ -495,7 +495,7 @@ export class Renderer {
     const cell = this.cam.cell;
 
     for (const t of state.towers) {
-      if (t.temp === -2) continue;
+      if (t.temp === -2 || t.invested < 0) continue;
       const x = this.px(t.x);
       const y = this.py(t.y);
       const d = towerDef(t.defId);
@@ -637,7 +637,7 @@ export class Renderer {
       ctx.fill();
       ctx.restore();
 
-      if (t.temp === -2) this.drawCompanion(ctx, t.defId, x, y, size, sd.dx < 0, color, sd.anim);
+      if (t.temp === -2 || t.invested < 0) this.drawCompanion(ctx, t.defId, x, y, size, sd.dx < 0, color, sd.anim);
       else atlas.drawTinted(ctx, stats.unitArt, x, y, size, rot, color, sd.spawnT > 0 ? 0.5 : 1);
 
       if (sd.hp < sd.maxHp) {
