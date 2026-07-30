@@ -16,7 +16,7 @@ import {
   type Fx, type Vec2,
 } from '../core/fixed';
 import { chance, nextInt, type RngHolder } from '../core/rng';
-import { buildMapRuntime, isBuildSite, type MapRuntime } from '../content/maps';
+import { buildMapRuntime, isBuildable, isBuildSite, type MapRuntime } from '../content/maps';
 import { enemyDef, ENEMY, EnemyAbility } from '../content/enemies';
 import {
   BASE_STATS, computeTowerStats, MAX_TOWER_LEVEL, TOWER, TOWERS, towerDef, upgradeCost,
@@ -446,8 +446,8 @@ function cmdUseItem(ctx: Ctx, p: PlayerState, slot: number, x: Fx, y: Fx): void 
       spawnSentry(ctx, p.idx, x, y, -1, TOWER.Brazier);
       break;
     case ItemKind.WolfIdol:
-      spawnSentry(ctx, p.idx, x - fx(0.6), y, -1, TOWER.Kennel);
-      spawnSentry(ctx, p.idx, x + fx(0.6), y, -1, TOWER.Kennel);
+      // One invisible pack source; only the wolves appear on the road.
+      spawnSentry(ctx, p.idx, x, y, -2, TOWER.Kennel);
       break;
     case ItemKind.Moonfang:
       spawnSentry(ctx, p.idx, x - fx(0.6), y, -1, TOWER.Moonwell);
@@ -1750,8 +1750,13 @@ function spawnSentry(ctx: Ctx, owner: number, x: Fx, y: Fx, duration: number, de
   // Persistent companions are intentionally capped per hero. This keeps long
   // co-op sessions bounded without making an existing summon disappear.
   if (duration < 0 && s.towers.filter((t) => t.owner === owner && t.temp < 0).length >= 12) return;
-  const cx = Math.floor(x / FX_ONE);
-  const cy = Math.floor(y / FX_ONE);
+  let cx = Math.floor(x / FX_ONE);
+  let cy = Math.floor(y / FX_ONE);
+  if (duration !== -2) {
+    const open = nearestOpenGround(ctx, cx, cy);
+    if (!open) return;
+    cx = open.x; cy = open.y;
+  }
   const rally = nearestLaneSpot(ctx.rt, x, y);
   const t: Tower = {
     id: nextId(s),
@@ -1777,6 +1782,23 @@ function spawnSentry(ctx: Ctx, owner: number, x: Fx, y: Fx, duration: number, de
   };
   s.towers.push(t);
   emit(ctx, EventKind.TowerBuilt, t.x, t.y, defId, 1, owner);
+}
+
+/** Find deterministic off-road ground for a visible summoned structure. */
+function nearestOpenGround(ctx: Ctx, originX: number, originY: number): { x: number; y: number } | null {
+  const { w, h } = ctx.rt.def;
+  const maxRadius = Math.max(w, h);
+  for (let radius = 0; radius <= maxRadius; radius++) {
+    for (let dy = -radius; dy <= radius; dy++) {
+      for (let dx = -radius; dx <= radius; dx++) {
+        if (Math.abs(dx) + Math.abs(dy) !== radius) continue;
+        const x = originX + dx, y = originY + dy;
+        if (!isBuildable(ctx.rt, x, y) || cellOccupied(ctx.s, x, y)) continue;
+        return { x, y };
+      }
+    }
+  }
+  return null;
 }
 
 // ============================================================== ground effects

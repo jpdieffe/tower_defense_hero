@@ -172,7 +172,7 @@ export const ITEMS: readonly ItemDef[] = [
   item({ id: ItemKind.PhoenixEgg, key: 'phoenix-egg', name: 'Phoenix Egg', icon: '🔥',
     desc: 'Hatch a persistent fire familiar at the chosen location.', cost: 260, targeted: true, duration: -1 }),
   item({ id: ItemKind.WolfIdol, key: 'wolf-idol', name: 'Wolf Idol', icon: '🐺',
-    desc: 'Call a persistent pair of spirit guardians.', cost: 280, targeted: true, duration: -1 }),
+    desc: 'Call one finite pack of spirit wolves onto the chosen road.', cost: 280, targeted: true, duration: -1 }),
   item({ id: ItemKind.StormBottle, key: 'storm-bottle', name: 'Storm Bottle', icon: '🌩',
     desc: 'Unleash an electrical storm for 6 seconds.', cost: 190, charges: 2, targeted: true,
     radius: fx(3), duration: sec(6), damage: 72, dmgType: DmgType.Energy }),
