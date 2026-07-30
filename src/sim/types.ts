@@ -44,6 +44,8 @@ export const ProjKind = {
   Rocket: 7,
   HeroShot: 8,
   Meteor: 9,
+  GiantAxe: 10,
+  SwordWave: 11,
 } as const;
 export type ProjKind = (typeof ProjKind)[keyof typeof ProjKind];
 
@@ -294,6 +296,8 @@ export interface PlayerState {
   relics: number[];
   items: ItemSlot[];
   skills: number[];
+  /** Independent cooldown by learned skill id. Signature power stays on Hero. */
+  powerCooldowns: number[];
   skillPoints: number;
   ready: boolean;
   kills: number;

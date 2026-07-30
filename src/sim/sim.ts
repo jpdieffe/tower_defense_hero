@@ -281,7 +281,8 @@ function cmdMoveHero(p: PlayerState, x: Fx, y: Fx): void {
 
 function cmdAbility(ctx: Ctx, p: PlayerState, skillId: number, x: Fx, y: Fx): void {
   const h = p.hero;
-  if (!h.alive || h.abilityCd > 0) return;
+  const currentCd = skillId < 0 ? h.abilityCd : (p.powerCooldowns[skillId] ?? 0);
+  if (!h.alive || currentCd > 0) return;
   const d = heroDef(h.defId);
   const baseAb = d.ability;
   const learned = skillId >= 0 ? skillDef(skillId) : null;
@@ -326,6 +327,16 @@ function cmdAbility(ctx: Ctx, p: PlayerState, skillId: number, x: Fx, y: Fx): vo
       applyStun(e, sec(0.35));
     }
     emit(ctx, EventKind.HeroAbility, h.x, h.y, AbilityKind.ShieldSlam, ab.radius, p.idx);
+  } else if (effect === 'axeThrow' || effect === 'swordWave') {
+    spawnWeaponProjectile(ctx, p.idx, h.x, h.y, tx, ty, ab.radius, dmg,
+      effect === 'axeThrow' ? ProjKind.GiantAxe : ProjKind.SwordWave);
+    emit(ctx, EventKind.Shot, h.x, h.y, -3, effect === 'axeThrow' ? ProjKind.GiantAxe : ProjKind.SwordWave, p.idx, tx, ty);
+  } else if (effect === 'greatSwing') {
+    const reach = fx(1.5);
+    const sx = h.x + fxMul(h.dx, reach);
+    const sy = h.y + fxMul(h.dy, reach);
+    spawnWeaponProjectile(ctx, p.idx, h.x, h.y, sx, sy, ab.radius, dmg, ProjKind.GiantAxe);
+    emit(ctx, EventKind.Shot, h.x, h.y, -3, ProjKind.GiantAxe, p.idx, sx, sy);
   } else if (effect === 'meteor') {
     spawnMeteor(ctx, p.idx, tx, ty, ab.radius, dmg, sec(3), 38);
     emit(ctx, EventKind.HeroAbility, tx, ty, AbilityKind.Meteor, ab.radius, p.idx);
@@ -370,7 +381,9 @@ function cmdAbility(ctx: Ctx, p: PlayerState, skillId: number, x: Fx, y: Fx): vo
   }
 
   const cdCut = Math.min(60, ctx.mods[p.idx].abilityCdPct + (hasSkill(p.skills, 6) ? 15 : 0));
-  h.abilityCd = Math.max(1, ab.cooldown - pct(ab.cooldown, cdCut));
+  const nextCd = Math.max(1, ab.cooldown - pct(ab.cooldown, cdCut));
+  if (skillId < 0) h.abilityCd = nextCd;
+  else p.powerCooldowns[skillId] = nextCd;
 }
 
 function cmdUseItem(ctx: Ctx, p: PlayerState, slot: number, x: Fx, y: Fx): void {
@@ -432,6 +445,7 @@ function cmdUseItem(ctx: Ctx, p: PlayerState, slot: number, x: Fx, y: Fx): void 
     case ItemKind.Elixir:
       p.hero.hp = heroMaxHp(p);
       p.hero.abilityCd = 0;
+      p.powerCooldowns.fill(0);
       break;
     default: break;
   }
@@ -496,6 +510,11 @@ function updateGlobalTimers(s: GameState): void {
   }
   for (let i = 0; i < s.overload.length; i++) {
     if (s.overload[i] > 0) s.overload[i]--;
+  }
+  for (const p of s.players) {
+    for (let i = 0; i < p.powerCooldowns.length; i++) {
+      if (p.powerCooldowns[i] > 0) p.powerCooldowns[i]--;
+    }
   }
 }
 
@@ -1685,6 +1704,25 @@ function spawnMeteor(
     groundRadius: radius,
     groundLife,
     scale: fx(1.8),
+  };
+  ctx.s.projectiles.push(p);
+}
+
+function spawnWeaponProjectile(
+  ctx: Ctx, owner: number, x: Fx, y: Fx, tx: Fx, ty: Fx,
+  radius: Fx, damage: number, kind: number,
+): void {
+  const p: Projectile = {
+    id: nextId(ctx.s), owner, towerId: 0, kind,
+    x, y, px: x, py: y, vx: 0, vy: 0, tx, ty, targetId: 0,
+    speed: kind === ProjKind.GiantAxe ? fx(0.38) : fx(0.58),
+    damage, dmgType: DmgType.Physical, splash: radius, life: sec(2),
+    homing: false, arcing: false, pierce: 0, hits: [],
+    slowPct: 0, slowT: 0, burnDps: 0, burnT: 0, poisonDps: 0, poisonT: 0,
+    stunT: kind === ProjKind.GiantAxe ? sec(0.25) : 0,
+    chains: 0, chainRange: 0, armorShred: kind === ProjKind.SwordWave ? 8 : 0,
+    groundKind: GroundKind.None, groundRadius: 0, groundLife: 0,
+    scale: kind === ProjKind.GiantAxe ? fx(2.2) : fx(1.8),
   };
   ctx.s.projectiles.push(p);
 }

@@ -10,7 +10,7 @@ export interface ActiveSkill {
   cooldown: number;
   damage: number;
   damagePerLevel: number;
-  effect: 'whirlwind' | 'meteor' | 'heal' | 'frost' | 'storm' | 'sentry' | 'guardian' | 'wolves' | 'totem';
+  effect: 'whirlwind' | 'meteor' | 'heal' | 'frost' | 'storm' | 'sentry' | 'guardian' | 'wolves' | 'totem' | 'axeThrow' | 'swordWave' | 'greatSwing';
 }
 
 export interface SkillDef {
@@ -40,8 +40,8 @@ export const SKILLS: readonly SkillDef[] = [
     active: { targeted: true, radius: fx(2.5), castRange: fx(6), cooldown: sec(12), damage: 38, damagePerLevel: 11, effect: 'storm' } },
   { id: 8, branch: 'Tactics', tier: 3, name: 'Arcane Sentry', desc: 'ACTIVE • Deploy a rapid-firing magical sentry for 20 seconds.', icon: '♜', requires: 7,
     active: { targeted: true, radius: fx(0.7), castRange: fx(5), cooldown: sec(17), damage: 0, damagePerLevel: 0, effect: 'sentry' } },
-  { id: 9, branch: 'Might', tier: 4, name: 'Titan Breaker', desc: 'ACTIVE • Smash a huge area with a stunning physical shockwave.', icon: '💥', requires: 2,
-    active: { targeted: true, radius: fx(3), castRange: fx(4.5), cooldown: sec(16), damage: 145, damagePerLevel: 32, effect: 'meteor' } },
+  { id: 9, branch: 'Might', tier: 4, name: 'Titan Breaker', desc: 'ACTIVE • Launch a colossal sword wave through a chosen area.', icon: '🗡️', requires: 2,
+    active: { targeted: true, radius: fx(2.2), castRange: fx(5.5), cooldown: sec(16), damage: 145, damagePerLevel: 32, effect: 'swordWave' } },
   { id: 10, branch: 'Might', tier: 5, name: 'Oathbound Guardian', desc: 'ACTIVE • Summon two persistent guardian companions.', icon: '🛡', requires: 9,
     active: { targeted: true, radius: fx(0.8), castRange: fx(4), cooldown: sec(28), damage: 0, damagePerLevel: 0, effect: 'guardian' } },
   { id: 11, branch: 'Survival', tier: 4, name: 'Sanctuary', desc: 'ACTIVE • Restore health and release a radiant pulse.', icon: '☀', requires: 5,
@@ -54,14 +54,14 @@ export const SKILLS: readonly SkillDef[] = [
     active: { targeted: true, radius: fx(0.8), castRange: fx(6), cooldown: sec(30), damage: 0, damagePerLevel: 0, effect: 'totem' } },
   // Advanced forks: each branch now splits after its second tier, letting a
   // hero build toward burst, control, recovery, or companions.
-  { id: 15, branch: 'Might', tier: 3, name: 'Cyclone Axe', desc: 'ACTIVE • A wider, harder whirlwind for holding a crowded lane.', icon: '🪓', requires: 1,
-    active: { targeted: false, radius: fx(2.8), castRange: 0, cooldown: sec(13), damage: 105, damagePerLevel: 23, effect: 'whirlwind' } },
+  { id: 15, branch: 'Might', tier: 3, name: 'Cyclone Axe', desc: 'ACTIVE • Swing a gigantic spectral axe through nearby enemies.', icon: '🪓', requires: 1,
+    active: { targeted: false, radius: fx(2.8), castRange: 0, cooldown: sec(13), damage: 105, damagePerLevel: 23, effect: 'greatSwing' } },
   { id: 16, branch: 'Might', tier: 4, name: 'Starfall', desc: 'ACTIVE • Bombard a distant area with celestial fire.', icon: '🌠', requires: 15,
     active: { targeted: true, radius: fx(2.6), castRange: fx(7.5), cooldown: sec(18), damage: 230, damagePerLevel: 48, effect: 'meteor' } },
   { id: 17, branch: 'Might', tier: 5, name: 'Warband', desc: 'ACTIVE • Call two oathbound warriors that remain for the battle.', icon: '⚔️', requires: 16,
     active: { targeted: true, radius: fx(1), castRange: fx(5), cooldown: sec(32), damage: 0, damagePerLevel: 0, effect: 'guardian' } },
-  { id: 18, branch: 'Might', tier: 6, name: 'Worldsplitter', desc: 'ACTIVE • Detonate an enormous high-damage impact zone.', icon: '🌋', requires: 17,
-    active: { targeted: true, radius: fx(3.6), castRange: fx(6), cooldown: sec(24), damage: 340, damagePerLevel: 62, effect: 'meteor' } },
+  { id: 18, branch: 'Might', tier: 6, name: 'Worldsplitter', desc: 'ACTIVE • Hurl a mountain-sized spinning axe that devastates its landing zone.', icon: '🪓', requires: 17,
+    active: { targeted: true, radius: fx(3.6), castRange: fx(6), cooldown: sec(24), damage: 340, damagePerLevel: 62, effect: 'axeThrow' } },
   { id: 19, branch: 'Survival', tier: 3, name: 'Glacial Ring', desc: 'ACTIVE • Freeze a broad ring around your hero.', icon: '🧊', requires: 4,
     active: { targeted: false, radius: fx(3.5), castRange: 0, cooldown: sec(18), damage: 74, damagePerLevel: 16, effect: 'frost' } },
   { id: 20, branch: 'Survival', tier: 4, name: 'Second Wind', desc: 'ACTIVE • Quickly restore 35% health in a radiant pulse.', icon: '💚', requires: 19,
@@ -78,6 +78,12 @@ export const SKILLS: readonly SkillDef[] = [
     active: { targeted: true, radius: fx(1.1), castRange: fx(6), cooldown: sec(32), damage: 0, damagePerLevel: 0, effect: 'guardian' } },
   { id: 26, branch: 'Tactics', tier: 6, name: 'Eye of the Tempest', desc: 'ACTIVE • Create the largest and longest-ranged storm.', icon: '🌀', requires: 25,
     active: { targeted: true, radius: fx(4), castRange: fx(8), cooldown: sec(22), damage: 82, damagePerLevel: 18, effect: 'storm' } },
+  { id: 27, branch: 'Might', tier: 2, name: 'Blade Arc', desc: 'ACTIVE • Fire a broad crescent sword wave down the lane.', icon: '⚔️', requires: 0,
+    active: { targeted: true, radius: fx(1.7), castRange: fx(6), cooldown: sec(10), damage: 90, damagePerLevel: 19, effect: 'swordWave' } },
+  { id: 28, branch: 'Tactics', tier: 2, name: "Executioner's Toss", desc: 'ACTIVE • Throw an enormous spinning battle axe at long range.', icon: '🪓', requires: 6,
+    active: { targeted: true, radius: fx(2), castRange: fx(7), cooldown: sec(12), damage: 125, damagePerLevel: 25, effect: 'axeThrow' } },
+  { id: 29, branch: 'Survival', tier: 2, name: 'Colossal Cleave', desc: 'ACTIVE • Sweep a radiant greatsword around your hero.', icon: '🗡️', requires: 3,
+    active: { targeted: false, radius: fx(2.6), castRange: 0, cooldown: sec(11), damage: 82, damagePerLevel: 18, effect: 'greatSwing' } },
 ];
 
 export const skillDef = (id: number): SkillDef => SKILLS[id] ?? SKILLS[0];

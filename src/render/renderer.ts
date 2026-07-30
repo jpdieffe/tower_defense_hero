@@ -875,6 +875,12 @@ export class Renderer {
         case ProjKind.HeroShot:
           atlas.draw(ctx, FXART.bulletWhite, x, y, cell * 0.3, rot);
           break;
+        case ProjKind.GiantAxe:
+          this.drawGiantAxe(x, y, cell * fxToFloat(p.scale), this.time * .018);
+          break;
+        case ProjKind.SwordWave:
+          this.drawSwordWave(x, y, cell * fxToFloat(p.scale), rot);
+          break;
         case ProjKind.Spark:
           this.dot(x, y, cell * 0.13, '#c39cff');
           break;
@@ -895,6 +901,31 @@ export class Renderer {
     ctx.beginPath();
     ctx.arc(x, y, r, 0, Math.PI * 2);
     ctx.fill();
+    ctx.restore();
+  }
+
+  private drawGiantAxe(x: number, y: number, size: number, rot: number): void {
+    const ctx = this.ctx;
+    ctx.save(); ctx.translate(x, y); ctx.rotate(rot);
+    ctx.shadowColor = '#ffd36a'; ctx.shadowBlur = size * .18;
+    ctx.strokeStyle = '#5b3824'; ctx.lineWidth = size * .12; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(0, size * .36); ctx.lineTo(0, -size * .38); ctx.stroke();
+    const metal = ctx.createLinearGradient(-size * .35, 0, size * .35, 0);
+    metal.addColorStop(0, '#76869b'); metal.addColorStop(.5, '#f7fbff'); metal.addColorStop(1, '#8290a3');
+    ctx.fillStyle = metal; ctx.strokeStyle = '#211a20'; ctx.lineWidth = size * .035;
+    ctx.beginPath(); ctx.moveTo(0, -size * .34); ctx.quadraticCurveTo(size * .42, -size * .42, size * .48, -size * .08); ctx.lineTo(size * .08, size * .02); ctx.lineTo(0, -size * .1); ctx.lineTo(-size * .08, size * .02); ctx.lineTo(-size * .48, -size * .08); ctx.quadraticCurveTo(-size * .42, -size * .42, 0, -size * .34); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.restore();
+  }
+
+  private drawSwordWave(x: number, y: number, size: number, rot: number): void {
+    const ctx = this.ctx;
+    ctx.save(); ctx.translate(x, y); ctx.rotate(rot);
+    ctx.globalAlpha = .3; ctx.strokeStyle = '#8cecff'; ctx.lineWidth = size * .22;
+    ctx.beginPath(); ctx.arc(0, size * .08, size * .43, Math.PI * 1.08, Math.PI * 1.92); ctx.stroke();
+    ctx.globalAlpha = 1; ctx.shadowColor = '#c6f7ff'; ctx.shadowBlur = size * .2;
+    ctx.fillStyle = '#eefcff'; ctx.strokeStyle = '#314961'; ctx.lineWidth = size * .035;
+    ctx.beginPath(); ctx.moveTo(0, -size * .52); ctx.lineTo(size * .1, size * .24); ctx.lineTo(0, size * .38); ctx.lineTo(-size * .1, size * .24); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#f2c14e'; ctx.fillRect(-size * .2, size * .2, size * .4, size * .09);
     ctx.restore();
   }
 

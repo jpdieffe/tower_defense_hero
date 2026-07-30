@@ -546,9 +546,11 @@ export class GameScreen {
     } else {
       this.hud.abilityCd.style.display = 'none';
     }
-    for (const cd of Array.from(this.hud.powersWrap.querySelectorAll<HTMLElement>('.shared-cd'))) {
+    for (const cd of Array.from(this.hud.powersWrap.querySelectorAll<HTMLElement>('.power-cd'))) {
+      const skillId = Number(cd.dataset.skillId);
+      const powerCd = me.powerCooldowns[skillId] ?? 0;
       if (!h.alive) { setText(cd, `☠${Math.ceil(h.respawn / TICK_RATE)}`); cd.style.display = ''; }
-      else if (h.abilityCd > 0) { setText(cd, String(Math.ceil(h.abilityCd / TICK_RATE))); cd.style.display = ''; }
+      else if (powerCd > 0) { setText(cd, String(Math.ceil(powerCd / TICK_RATE))); cd.style.display = ''; }
       else cd.style.display = 'none';
     }
     this.refreshPowers();
@@ -757,7 +759,8 @@ export class GameScreen {
 
   private armAbility(skillId: number): void {
     const h = this.me.hero;
-    if (!h.alive || h.abilityCd > 0) {
+    const cooldown = skillId < 0 ? h.abilityCd : (this.me.powerCooldowns[skillId] ?? 0);
+    if (!h.alive || cooldown > 0) {
       audio.play('deny', { volume: 0.5 });
       return;
     }
@@ -815,7 +818,7 @@ export class GameScreen {
       const btn = tapButton('action-btn power-slot', () => this.armAbility(sk.id),
         el('div', { class: 'big' }, sk.icon),
         el('div', { class: 'tiny' }, sk.name),
-        el('div', { class: 'cd shared-cd' }, ''),
+        el('div', { class: 'cd power-cd', 'data-skill-id': String(sk.id) }, ''),
       );
       btn.dataset.skillId = String(sk.id);
       btn.title = sk.desc;
