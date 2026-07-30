@@ -275,6 +275,30 @@ button {
   background: rgba(255, 255, 255, 0.06);
 }
 
+.campaign-reset {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 14px;
+  border: 1px solid var(--edge);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.campaign-reset-stage {
+  margin-top: 3px;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.campaign-reset-button {
+  min-height: 40px;
+  padding: 8px 12px;
+  font-size: 13px;
+}
+
 .btn:disabled,
 .btn[aria-disabled='true'] {
   opacity: 0.42;

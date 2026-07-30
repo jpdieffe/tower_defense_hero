@@ -5,10 +5,12 @@ import { DIFFICULTIES } from '../sim/state';
 import { copyToClipboard, clear, el, tapButton, toast } from './dom';
 
 export interface TitleHandlers {
+  campaignStage: number;
   onSolo: () => void;
   onHost: () => void;
   onJoin: () => void;
   onHelp: () => void;
+  onResetCampaign: () => void;
 }
 
 export function renderTitle(root: HTMLElement, h: TitleHandlers): void {
@@ -30,6 +32,15 @@ export function renderTitle(root: HTMLElement, h: TitleHandlers): void {
         tapButton('btn warm', h.onJoin, '🔗 Join with a code'),
         tapButton('btn ghost', h.onSolo, '🎯 Play solo'),
         tapButton('btn ghost', h.onHelp, '❔ How to play'),
+        el(
+          'div',
+          { class: 'campaign-reset' },
+          el('div', {},
+            el('div', { class: 'skill-kicker' }, 'CAMPAIGN PROGRESS'),
+            el('div', { class: 'campaign-reset-stage' }, `Stage ${h.campaignStage + 1} of ${MAPS.length}`),
+          ),
+          tapButton('btn danger campaign-reset-button', h.onResetCampaign, 'Reset campaign'),
+        ),
         el(
           'div',
           { class: 'muted', style: 'text-align:center' },

@@ -110,9 +110,21 @@ class App {
     this.teardownNet();
     this.screen = 'title';
     renderTitle(this.ui, {
+      campaignStage: this.setup.mapId,
       onSolo: () => this.showSoloSetup(),
       onHost: () => this.startHosting(),
       onJoin: () => this.showJoin(''),
+      onResetCampaign: () => {
+        if (this.setup.mapId === 0) {
+          toast('Campaign is already at Stage 1.');
+          return;
+        }
+        if (!window.confirm('Reset all campaign progress and return to Stage 1?')) return;
+        this.setup.mapId = 0;
+        localStorage.setItem('bulwark-campaign-stage', '0');
+        this.showTitle();
+        toast('Campaign reset to Stage 1.');
+      },
       onHelp: () => {
         this.screen = 'help';
         renderHelp(this.ui, () => this.showTitle());
