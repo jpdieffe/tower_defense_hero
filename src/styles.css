@@ -385,6 +385,8 @@ input.code {
   background: linear-gradient(180deg, rgba(6, 9, 16, 0.9), rgba(6, 9, 16, 0));
   flex-wrap: wrap;
 }
+.commit-badge { align-self:center; display:flex; align-items:center; gap:8px; margin:2px auto 4px; padding:6px 11px; border:1px solid rgba(126,232,255,.3); border-radius:999px; background:rgba(16,31,50,.8); color:#8295ad; font-size:9px; font-weight:800; letter-spacing:.12em; font-variant-numeric:tabular-nums; }
+.commit-badge strong { color:#9fe8ff; font-size:11px; letter-spacing:.08em; }
 .campaign-stage { padding:15px; border:1px solid rgba(255,212,71,.35); border-radius:13px; background:linear-gradient(145deg,#25344a,#121b29); }
 .campaign-stage .name { margin:5px 0; color:#fff2c0; font-size:20px; font-weight:900; }
 .campaign-stage .sub { color:#aebbd0; font-size:12px; line-height:1.45; }

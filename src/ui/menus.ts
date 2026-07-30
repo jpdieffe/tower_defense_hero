@@ -36,11 +36,8 @@ export function renderTitle(root: HTMLElement, h: TitleHandlers): void {
           'Runs in any modern phone browser — no install, no account. '
           + 'Every phone simulates the battle in perfect lockstep, so you always see the same fight.',
         ),
-        el(
-          'div',
-          { class: 'muted', style: 'text-align:center;opacity:0.6;font-variant-numeric:tabular-nums' },
-          `build ${__BUILD_COMMIT__}`,
-        ),
+        el('div', { class: 'commit-badge', title: 'Running Git revision' },
+          el('span', {}, 'GAME COMMIT'), el('strong', {}, __BUILD_COMMIT__)),
       ),
     ),
   );

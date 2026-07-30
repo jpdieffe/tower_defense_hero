@@ -9,6 +9,10 @@ import { sec, type GameState, type Hero, type PlayerState, Phase } from './types
 export interface MatchPlayerConfig {
   name: string;
   heroId: number;
+  heroLevel?: number;
+  heroXp?: number;
+  skills?: number[];
+  skillPoints?: number;
 }
 
 export interface MatchConfig {
@@ -66,15 +70,22 @@ export function createState(cfg: MatchConfig): GameState {
     const off = HERO_SPAWN_OFFSETS[i % HERO_SPAWN_OFFSETS.length];
     const spawnX = cellCenter(rt.def.core[0] + off[0]);
     const spawnY = cellCenter(rt.def.core[1] + off[1]);
+    const hero = makeHero(p.heroId, spawnX, spawnY);
+    hero.level = Math.max(1, p.heroLevel ?? 1);
+    hero.xp = Math.max(0, p.heroXp ?? 0);
+    const hd = heroDef(p.heroId);
+    const baseMaxHp = hd.hp + hd.hpPerLevel * (hero.level - 1);
+    hero.maxHp = (p.skills ?? []).includes(3) ? baseMaxHp + Math.floor(baseMaxHp / 4) : baseMaxHp;
+    hero.hp = hero.maxHp;
     return {
       idx: i,
       gold: cfg.startGold,
-      hero: makeHero(p.heroId, spawnX, spawnY),
+      hero,
       relics: [],
       items: [],
-      skills: [],
+      skills: [...(p.skills ?? [])],
       powerCooldowns: new Array(SKILLS.length).fill(0),
-      skillPoints: 0,
+      skillPoints: Math.max(0, p.skillPoints ?? 0),
       ready: false,
       kills: 0,
       damage: 0,

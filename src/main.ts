@@ -527,13 +527,27 @@ class App {
     const next = Math.min(MAPS.length - 1, current + 1);
     this.setup.mapId = next;
     localStorage.setItem('bulwark-campaign-stage', String(next));
-    if (!multiplayer) {
-      this.game?.destroy(); this.game = null; this.startSolo();
-      return;
-    }
     const prev = this.lastMatch;
     if (!prev) return;
-    const cfg: MatchConfig = { ...prev.cfg, mapId: next, seed: randomSeed() };
+    const state = this.currentLockstep?.state;
+    const players = prev.cfg.players.map((player, i) => {
+      const progress = state?.players[i];
+      return progress ? {
+        ...player,
+        heroLevel: progress.hero.level,
+        heroXp: progress.hero.xp,
+        skills: [...progress.skills],
+        skillPoints: progress.skillPoints,
+      } : player;
+    });
+    const cfg: MatchConfig = { ...prev.cfg, players, mapId: next, seed: randomSeed() };
+    if (!multiplayer) {
+      this.game?.destroy(); this.game = null;
+      const ls = soloLockstep(createState(cfg));
+      this.lastMatch = { cfg, inputDelay: 1 };
+      this.enterGame(ls, 0, false);
+      return;
+    }
     const inputDelay = inputDelayForRtt(this.rttMs);
     this.transport?.send({ t: 'start', match: cfg, inputDelay });
     this.game?.destroy(); this.game = null;
