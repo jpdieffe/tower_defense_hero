@@ -425,102 +425,48 @@ function drawMagician(ctx: CanvasRenderingContext2D, s: HeroArtState): void {
 // --- Orc ------------------------------------------------------------------
 
 function drawOrc(ctx: CanvasRenderingContext2D, s: HeroArtState): void {
-  const hide = '#6fae42';
-  const hideDark = '#4e8130';
-  const leather = '#6b4a2c';
-  const iron = '#9aa4b0';
+  const skin = '#75b84a', shadow = '#477a31', leather = '#754827', iron = '#aeb8c4';
+  const swing = s.swing;
 
-  // Fur mantle trailing behind.
-  cloak(ctx, '#7a5a38', 'rgba(40,24,12,0.6)', 0.34);
-
-  // Off hand: spiked bracer / small buckler.
-  ctx.save();
-  ctx.translate(-0.26, 0.02);
-  ctx.rotate(-0.2 - s.swing * 0.2);
-  arm(ctx, 0.06, 0.02, 0, -0.1, hideDark, 0.12);
-  circle(ctx, 0, -0.16, 0.12);
-  ink(ctx, iron);
-  circle(ctx, 0, -0.16, 0.04);
-  ink(ctx, '#5f6873', 0.02);
+  // Oversized axe sits behind the body and creates the class silhouette.
+  ctx.save(); ctx.translate(-.2, .04); ctx.rotate(-.5 + swing * 1.35);
+  rounded(ctx, 0, -.18, .075, .86, .025); ink(ctx, leather, .028);
+  ctx.beginPath(); ctx.moveTo(-.05,-.53); ctx.lineTo(.3,-.59); ctx.lineTo(.43,-.45);
+  ctx.lineTo(.29,-.27); ctx.lineTo(-.04,-.34); ctx.closePath(); ink(ctx, iron, .036);
+  ctx.beginPath(); ctx.moveTo(.03,-.48); ctx.lineTo(.31,-.51); ctx.lineTo(.35,-.44);
+  ctx.lineTo(.27,-.36); ctx.lineTo(.03,-.4); ctx.closePath(); ink(ctx, '#e8eef5', .015);
   ctx.restore();
 
-  // Weapon hand: a huge double-bit war axe.
-  ctx.save();
-  ctx.translate(0.24 - s.swing * 0.04, 0.04 - s.swing * 0.08);
-  ctx.rotate(0.75 - s.swing * 0.95);
-  arm(ctx, -0.06, 0.02, 0.02, -0.1, hideDark, 0.12);
-  rounded(ctx, 0.01, -0.28, 0.06, 0.46, 0.02);
-  ink(ctx, leather, 0.024);
-  // Flat double-bit head across the haft.
-  ctx.beginPath();
-  ctx.moveTo(-0.25, -0.44);
-  ctx.lineTo(-0.09, -0.53);
-  ctx.lineTo(0.11, -0.53);
-  ctx.lineTo(0.27, -0.44);
-  ctx.lineTo(0.11, -0.35);
-  ctx.lineTo(-0.09, -0.35);
-  ctx.closePath();
-  ink(ctx, '#cdd6e0', 0.03);
-  ctx.beginPath();
-  ctx.moveTo(-0.09, -0.35);
-  ctx.lineTo(-0.09, -0.53);
-  ctx.moveTo(0.11, -0.35);
-  ctx.lineTo(0.11, -0.53);
-  ctx.lineWidth = 0.02;
-  ctx.strokeStyle = 'rgba(90,105,125,0.75)';
-  ctx.stroke();
-  ctx.restore();
+  // Hunched, barrel-shaped body. The forward shoulder is much larger.
+  ctx.beginPath(); ctx.moveTo(-.28,.24); ctx.quadraticCurveTo(-.35,-.12,-.12,-.28);
+  ctx.quadraticCurveTo(.2,-.34,.34,-.05); ctx.lineTo(.25,.27); ctx.closePath(); ink(ctx, skin);
+  ctx.strokeStyle=leather; ctx.lineWidth=.075; ctx.beginPath(); ctx.moveTo(-.18,-.25); ctx.lineTo(.18,.25); ctx.stroke();
+  circle(ctx,.25,-.03,.145); ink(ctx, shadow);
+  // One huge forward fist, readable even at phone scale.
+  arm(ctx,.2,.0,.39,.18,skin,.14); circle(ctx,.42,.2,.105); ink(ctx,skin,.028);
+  for(let i=0;i<3;i++){ rounded(ctx,.38+i*.04,.235,.035,.09,.016); ink(ctx,shadow,.012); }
 
-  // Broad torso with crossed straps.
-  rounded(ctx, 0, 0.0, 0.5, 0.42, 0.17);
-  ink(ctx, hide);
-  ctx.save();
-  rounded(ctx, 0, 0.0, 0.5, 0.42, 0.17);
-  ctx.clip();
-  ctx.strokeStyle = leather;
-  ctx.lineWidth = 0.07;
-  ctx.beginPath();
-  ctx.moveTo(-0.22, -0.22);
-  ctx.lineTo(0.18, 0.24);
-  ctx.stroke();
-  ctx.restore();
+  // True side-profile head: skull at the rear, muzzle projecting right.
+  ctx.beginPath(); ctx.moveTo(-.12,-.2); ctx.quadraticCurveTo(-.1,-.48,.16,-.48);
+  ctx.quadraticCurveTo(.31,-.43,.29,-.24); ctx.lineTo(.13,-.12); ctx.closePath(); ink(ctx,skin,.032);
+  // Long jaw and blunt nose point in the facing direction.
+  ctx.beginPath(); ctx.moveTo(.08,-.29); ctx.quadraticCurveTo(.29,-.34,.43,-.23);
+  ctx.lineTo(.4,-.1); ctx.quadraticCurveTo(.22,-.06,.06,-.14); ctx.closePath(); ink(ctx,shadow,.028);
+  circle(ctx,.39,-.23,.032); ink(ctx,'#26301f',.01);
+  // Single side eye under a heavy angled brow.
+  ctx.strokeStyle='#315624'; ctx.lineWidth=.065; ctx.beginPath(); ctx.moveTo(.06,-.39); ctx.lineTo(.25,-.34); ctx.stroke();
+  circle(ctx,.18,-.34,.035); ink(ctx,'#ffd94a',.012); circle(ctx,.19,-.34,.014); ctx.fillStyle='#18120d'; ctx.fill();
+  // Forward tusk and pointed ear reinforce direction.
+  ctx.beginPath(); ctx.moveTo(.27,-.12); ctx.quadraticCurveTo(.39,-.04,.42,-.25);
+  ctx.quadraticCurveTo(.34,-.13,.23,-.16); ctx.closePath(); ink(ctx,'#fff0c9',.018);
+  ctx.beginPath(); ctx.moveTo(-.08,-.39); ctx.lineTo(-.3,-.34); ctx.lineTo(-.11,-.23); ctx.closePath(); ink(ctx,shadow,.022);
+  // Chunky topknot trailing backward.
+  ctx.strokeStyle='#342316'; ctx.lineWidth=.075; ctx.beginPath(); ctx.moveTo(-.03,-.46); ctx.quadraticCurveTo(-.19,-.63,-.34,-.48); ctx.stroke();
+  circle(ctx,-.35,-.47,.065); ink(ctx,'#2f2118',.018);
 
-  // Spiked shoulders.
-  for (const sx of [-1, 1]) {
-    circle(ctx, sx * 0.26, 0.02, 0.125);
-    ink(ctx, hideDark);
-    ctx.beginPath();
-    ctx.moveTo(sx * 0.26, -0.09);
-    ctx.lineTo(sx * 0.31, -0.01);
-    ctx.lineTo(sx * 0.21, -0.01);
-    ctx.closePath();
-    ink(ctx, iron, 0.018);
-  }
-
-  // Head: heavy brow, tusks, topknot.
-  ctx.beginPath();
-  ctx.moveTo(0, 0.06);
-  ctx.quadraticCurveTo(-0.02, 0.24, 0.04, 0.32);
-  ctx.quadraticCurveTo(0.02, 0.16, 0.05, 0.05);
-  ctx.closePath();
-  ink(ctx, '#2f2418', 0.022);
-  circle(ctx, 0, -0.15, 0.16);
-  ink(ctx, hide);
-  rounded(ctx, s.view === 'side' ? 0.025 : 0, -0.24, s.view === 'side' ? 0.14 : 0.22, 0.06, 0.03);
-  ink(ctx, hideDark, 0.02);
-  if (s.view !== 'back') {
-    ctx.fillStyle = '#ffd94a';
-    circle(ctx, s.view === 'side' ? 0.065 : -0.055, -0.21, 0.026); ctx.fill();
-    if (s.view !== 'side') { circle(ctx, 0.055, -0.21, 0.026); ctx.fill(); }
-  }
-  for (const sx of s.view === 'back' ? [] : (s.view === 'side' ? [1] : [-1, 1])) {
-    ctx.beginPath();
-    ctx.moveTo(sx * 0.075, -0.28);
-    ctx.quadraticCurveTo(sx * 0.115, -0.36, sx * 0.06, -0.4);
-    ctx.quadraticCurveTo(sx * 0.085, -0.33, sx * 0.045, -0.28);
-    ctx.closePath();
-    ink(ctx, '#f4efdc', 0.018);
-  }
+  // Bright shoulder plate and spikes: simple, high-contrast cartoon shapes.
+  ctx.beginPath(); ctx.arc(-.12,-.2,.18,Math.PI,Math.PI*2); ctx.lineTo(.05,-.16); ctx.closePath(); ink(ctx,'#68737f',.028);
+  for(const ox of [-.2,-.08,.03]){ ctx.beginPath(); ctx.moveTo(ox,-.34); ctx.lineTo(ox+.035,-.48); ctx.lineTo(ox+.075,-.32); ctx.closePath(); ink(ctx,'#e1e7ed',.015); }
 }
 
 // --- Dark Elf -------------------------------------------------------------
