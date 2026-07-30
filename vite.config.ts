@@ -10,11 +10,23 @@ function commit(): string {
   }
 }
 
+const buildCommit = commit();
+
 export default defineConfig({
   base: './',
   define: {
-    __BUILD_COMMIT__: JSON.stringify(commit()),
+    __BUILD_COMMIT__: JSON.stringify(buildCommit),
   },
+  plugins: [{
+    name: 'build-version',
+    generateBundle() {
+      this.emitFile({
+        type: 'asset',
+        fileName: 'version.json',
+        source: JSON.stringify({ commit: buildCommit }),
+      });
+    },
+  }],
   server: {
     host: true,
     port: 5173,

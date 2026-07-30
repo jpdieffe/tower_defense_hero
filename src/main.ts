@@ -669,8 +669,37 @@ class App {
   private currentLockstep: Lockstep | null = null;
 }
 
-const app = new App();
-void app.boot();
+/** Force stale mobile tabs and home-screen installs onto the newest deployment. */
+async function updateToLatestBuild(): Promise<boolean> {
+  try {
+    const versionUrl = new URL('./version.json', document.baseURI);
+    versionUrl.searchParams.set('check', Date.now().toString());
+    const response = await fetch(versionUrl, { cache: 'no-store' });
+    if (!response.ok) return false;
+    const version = await response.json() as { commit?: string };
+    if (!version.commit || version.commit === __BUILD_COMMIT__) {
+      sessionStorage.removeItem('bulwark-update-attempt');
+      return false;
+    }
+
+    // Avoid a reload loop if GitHub Pages briefly serves files from two deploys.
+    if (sessionStorage.getItem('bulwark-update-attempt') === version.commit) return false;
+    sessionStorage.setItem('bulwark-update-attempt', version.commit);
+    const latestUrl = new URL(location.href);
+    latestUrl.searchParams.set('v', version.commit);
+    location.replace(latestUrl);
+    return true;
+  } catch {
+    // Offline play and temporary network failures should still open normally.
+    return false;
+  }
+}
+
+void (async () => {
+  if (await updateToLatestBuild()) return;
+  const app = new App();
+  await app.boot();
+})();
 
 // Keep the canvas sized to the visual viewport (mobile browser chrome moves).
 window.visualViewport?.addEventListener('resize', () => {
