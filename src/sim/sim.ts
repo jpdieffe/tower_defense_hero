@@ -157,7 +157,6 @@ function cmdChooseSkill(ctx: Ctx, p: PlayerState, skillId: number): void {
   p.skills.push(skillId);
   p.skills.sort((a, b) => a - b);
   p.skillPoints--;
-  if (skillId === 3) p.hero.hp = Math.min(heroMaxHp(p), p.hero.hp + Math.floor(heroMaxHp(p) / 4));
   emit(ctx, EventKind.SkillChosen, p.hero.x, p.hero.y, skillId, p.skillPoints, p.idx);
 }
 
@@ -289,7 +288,7 @@ function cmdAbility(ctx: Ctx, p: PlayerState, skillId: number, x: Fx, y: Fx): vo
   if (learned && (!learned.active || !hasSkill(p.skills, skillId))) return;
   const ab = learned?.active ?? baseAb;
   const power = ab.damage + ab.damagePerLevel * (h.level - 1);
-  const heroDmgPct = ctx.mods[p.idx].heroDamagePct + (hasSkill(p.skills, 0) ? 15 : 0);
+  const heroDmgPct = ctx.mods[p.idx].heroDamagePct;
   const dmg = power + pct(power, heroDmgPct);
 
   let tx = x;
@@ -337,6 +336,14 @@ function cmdAbility(ctx: Ctx, p: PlayerState, skillId: number, x: Fx, y: Fx): vo
     const sy = h.y + fxMul(h.dy, reach);
     spawnWeaponProjectile(ctx, p.idx, h.x, h.y, sx, sy, ab.radius, dmg, ProjKind.GiantAxe);
     emit(ctx, EventKind.Shot, h.x, h.y, -3, ProjKind.GiantAxe, p.idx, sx, sy);
+  } else if (effect === 'flameAttacks' || effect === 'axeAttacks' || effect === 'frostAttacks') {
+    p.attackBuffKind = effect === 'flameAttacks' ? 1 : effect === 'axeAttacks' ? 2 : 3;
+    p.attackBuffT = ab.duration ?? sec(12);
+    emit(ctx, EventKind.HeroAbility, h.x, h.y, AbilityKind.ShieldSlam, fx(1.2), p.idx);
+  } else if (effect === 'bear' || effect === 'ogre') {
+    const defId = effect === 'bear' ? TOWER.Kennel : TOWER.Barracks;
+    spawnSentry(ctx, p.idx, tx, ty, -2, defId);
+    emit(ctx, EventKind.SoldierSpawn, tx, ty, defId, 0, p.idx);
   } else if (effect === 'meteor') {
     spawnMeteor(ctx, p.idx, tx, ty, ab.radius, dmg, sec(3), 38);
     emit(ctx, EventKind.HeroAbility, tx, ty, AbilityKind.Meteor, ab.radius, p.idx);
@@ -348,8 +355,9 @@ function cmdAbility(ctx: Ctx, p: PlayerState, skillId: number, x: Fx, y: Fx): vo
     emit(ctx, EventKind.HeroAbility, tx, ty, AbilityKind.Sentry, ab.radius, p.idx);
   } else if (effect === 'guardian' || effect === 'wolves') {
     const summonDef = effect === 'wolves' ? TOWER.Kennel : (skillId === 25 ? TOWER.Rune : TOWER.Templar);
-    spawnSentry(ctx, p.idx, tx - fx(0.6), ty, -1, summonDef);
-    spawnSentry(ctx, p.idx, tx + fx(0.6), ty, -1, summonDef);
+    const duration = effect === 'wolves' ? -2 : -1;
+    spawnSentry(ctx, p.idx, tx - fx(0.6), ty, duration, summonDef);
+    spawnSentry(ctx, p.idx, tx + fx(0.6), ty, duration, summonDef);
     emit(ctx, EventKind.HeroAbility, tx, ty, AbilityKind.Sentry, ab.radius, p.idx);
   } else switch (baseAb.kind) {
     case AbilityKind.ShieldSlam: {
@@ -381,7 +389,7 @@ function cmdAbility(ctx: Ctx, p: PlayerState, skillId: number, x: Fx, y: Fx): vo
     default: break;
   }
 
-  const cdCut = Math.min(60, ctx.mods[p.idx].abilityCdPct + (hasSkill(p.skills, 6) ? 15 : 0));
+  const cdCut = Math.min(60, ctx.mods[p.idx].abilityCdPct);
   const nextCd = Math.max(1, ab.cooldown - pct(ab.cooldown, cdCut));
   if (skillId < 0) h.abilityCd = nextCd;
   else p.powerCooldowns[skillId] = nextCd;
@@ -521,6 +529,7 @@ function updateGlobalTimers(s: GameState): void {
     for (let i = 0; i < p.powerCooldowns.length; i++) {
       if (p.powerCooldowns[i] > 0) p.powerCooldowns[i]--;
     }
+    if (p.attackBuffT > 0 && --p.attackBuffT === 0) p.attackBuffKind = 0;
   }
 }
 
@@ -998,7 +1007,6 @@ function grantXp(ctx: Ctx, p: PlayerState, amount: number): void {
 function heroMaxHp(p: PlayerState): number {
   const d = heroDef(p.hero.defId);
   let hp = d.hp + d.hpPerLevel * (p.hero.level - 1);
-  if (hasSkill(p.skills, 3)) hp += pct(hp, 25);
   return hp;
 }
 
@@ -1898,8 +1906,7 @@ function updateHeroes(ctx: Ctx): void {
 
     // Auto attack
     if (h.attackCd > 0) { h.attackCd--; continue; }
-    const skillRange = hasSkill(p.skills, 6) ? d.range + pct(d.range, 20) : d.range;
-    const target = heroTarget(ctx, h, skillRange);
+    const target = heroTarget(ctx, h, d.range);
     if (!target) continue;
 
     fxNormalize(target.x - h.x, target.y - h.y, tmpVec);
@@ -1909,23 +1916,23 @@ function updateHeroes(ctx: Ctx): void {
     h.attackCd = d.attackCd;
 
     let damage = d.damage + d.damagePerLevel * (h.level - 1);
-    damage += pct(damage, m.heroDamagePct + (hasSkill(p.skills, 0) ? 15 : 0));
+    damage += pct(damage, m.heroDamagePct + (p.attackBuffKind > 0 ? 35 : 0));
     const critPct = d.critPct + m.critPct;
     if (critPct > 0 && chance(s as RngHolder, Math.min(100, critPct))) {
       damage = Math.floor((damage * d.critMult) / 100);
     }
 
-    const st = heroAttackStats(d, damage);
+    const st = heroAttackStats(d, damage, p.attackBuffKind);
     if (d.projSpeed <= 0) {
       resolveHit(ctx, p.idx, 0, st, target, damage, target.x, target.y);
-      emit(ctx, EventKind.Shot, h.x, h.y, -1, d.projKind, p.idx, target.x, target.y);
+      emit(ctx, EventKind.Shot, h.x, h.y, -1, st.projKind, p.idx, target.x, target.y);
     } else {
       const proj = makeProjectile(ctx, p.idx, 0, st, h.x, h.y, damage);
       proj.targetId = target.id;
       proj.tx = target.x;
       proj.ty = target.y;
       s.projectiles.push(proj);
-      emit(ctx, EventKind.Shot, h.x, h.y, -1, d.projKind, p.idx, target.x, target.y);
+      emit(ctx, EventKind.Shot, h.x, h.y, -1, st.projKind, p.idx, target.x, target.y);
     }
 
     // Lifesteal is paid on the swing, not on the projectile landing, so it
@@ -1936,18 +1943,20 @@ function updateHeroes(ctx: Ctx): void {
   }
 }
 
-function heroAttackStats(d: ReturnType<typeof heroDef>, damage: number): TowerStats {
+function heroAttackStats(d: ReturnType<typeof heroDef>, damage: number, buffKind = 0): TowerStats {
   return {
     ...BASE_STATS,
     damage,
     cooldown: d.attackCd,
     range: d.range,
     splash: d.splash,
-    dmgType: d.dmgType,
+    dmgType: buffKind === 1 ? DmgType.Fire : buffKind === 3 ? DmgType.Frost : d.dmgType,
     projSpeed: d.projSpeed,
-    projKind: d.projKind,
-    burnDps: d.burnDps,
-    burnT: d.burnT,
+    projKind: buffKind === 1 ? ProjKind.Ember : buffKind === 2 ? ProjKind.GiantAxe : buffKind === 3 ? ProjKind.Shard : d.projKind,
+    slowPct: buffKind === 3 ? 38 : 0,
+    slowT: buffKind === 3 ? sec(1.5) : 0,
+    burnDps: buffKind === 1 ? Math.max(8, Math.floor(damage / 4)) : d.burnDps,
+    burnT: buffKind === 1 ? sec(2) : d.burnT,
     poisonDps: d.poisonDps,
     poisonT: d.poisonT,
     armorShred: d.armorShred,

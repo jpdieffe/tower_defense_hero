@@ -75,7 +75,7 @@ export function createState(cfg: MatchConfig): GameState {
     hero.xp = Math.max(0, p.heroXp ?? 0);
     const hd = heroDef(p.heroId);
     const baseMaxHp = hd.hp + hd.hpPerLevel * (hero.level - 1);
-    hero.maxHp = (p.skills ?? []).includes(3) ? baseMaxHp + Math.floor(baseMaxHp / 4) : baseMaxHp;
+    hero.maxHp = baseMaxHp;
     hero.hp = hero.maxHp;
     return {
       idx: i,
@@ -85,6 +85,8 @@ export function createState(cfg: MatchConfig): GameState {
       items: [],
       skills: [...(p.skills ?? [])],
       powerCooldowns: new Array(SKILLS.length).fill(0),
+      attackBuffKind: 0,
+      attackBuffT: 0,
       skillPoints: Math.max(0, p.skillPoints ?? 0),
       ready: false,
       kills: 0,
@@ -144,7 +146,7 @@ export function addPlayerToState(state: GameState, player: MatchPlayerConfig): P
     idx,
     gold: 280,
     hero: makeHero(player.heroId, spawnX, spawnY),
-    relics: [], items: [], skills: [], powerCooldowns: new Array(SKILLS.length).fill(0), skillPoints: 0, ready: false,
+    relics: [], items: [], skills: [], powerCooldowns: new Array(SKILLS.length).fill(0), attackBuffKind: 0, attackBuffT: 0, skillPoints: 0, ready: false,
     kills: 0, damage: 0, goldEarned: 0, towersBuilt: 0,
   };
   state.players.push(joined);
@@ -246,6 +248,7 @@ export function hashState(s: GameState): number {
     h = mix(h, p.skillPoints);
     for (const sk of p.skills) h = mix(h, sk);
     for (const cd of p.powerCooldowns) h = mix(h, cd);
+    h = mix(h, p.attackBuffKind); h = mix(h, p.attackBuffT);
     const hero = p.hero;
     h = mix(h, hero.x);
     h = mix(h, hero.y);

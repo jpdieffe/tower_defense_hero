@@ -654,7 +654,8 @@ export class GameScreen {
   private openBuildSitePicker(cx: number, cy: number): void {
     if (this.overlay || this.state.towers.some((t) => t.temp === 0 && t.cx === cx && t.cy === cy)) return;
     const grid = el('div', { class: 'build-site-grid' });
-    for (const tower of TOWERS.slice(0, 4)) {
+    const baseTowers = [...TOWERS.slice(0, 4), towerDef(8)];
+    for (const tower of baseTowers) {
       const affordable = this.me.gold >= tower.cost;
       grid.appendChild(tapButton(`build-site-choice${affordable ? '' : ' poor'}`, () => {
         if (!affordable) { audio.play('deny', { volume: .5 }); return; }
@@ -669,7 +670,7 @@ export class GameScreen {
     const panel = el('div', { class: 'power-panel build-site-panel' },
       el('div', { class: 'skill-kicker' }, 'TOWER FOUNDATION'),
       el('h2', {}, 'Raise a defense'),
-      el('p', { class: 'skill-sub' }, 'Choose a base tower. Upgrade it later into Power or Speed specializations.'),
+      el('p', { class: 'skill-sub' }, 'Choose a base tower, including Barracks soldiers. Upgrade it later into Power or Speed specializations.'),
       grid,
       tapButton('btn ghost skill-later', () => this.closeOverlay(), 'Cancel'));
     this.overlay = el('div', { class: 'overlay skill-overlay' }, panel);

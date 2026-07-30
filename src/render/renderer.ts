@@ -495,6 +495,7 @@ export class Renderer {
     const cell = this.cam.cell;
 
     for (const t of state.towers) {
+      if (t.temp === -2) continue;
       const x = this.px(t.x);
       const y = this.py(t.y);
       const d = towerDef(t.defId);
@@ -636,7 +637,8 @@ export class Renderer {
       ctx.fill();
       ctx.restore();
 
-      atlas.drawTinted(ctx, stats.unitArt, x, y, size, rot, color, sd.spawnT > 0 ? 0.5 : 1);
+      if (t.temp === -2) this.drawCompanion(ctx, t.defId, x, y, size, sd.dx < 0, color, sd.anim);
+      else atlas.drawTinted(ctx, stats.unitArt, x, y, size, rot, color, sd.spawnT > 0 ? 0.5 : 1);
 
       if (sd.hp < sd.maxHp) {
         const w = size * 0.7;
@@ -813,6 +815,16 @@ export class Renderer {
         swing,
         cast: h.abilityT > 0 ? 1 : 0,
       });
+      if (p.attackBuffT > 0) {
+        const side = h.dx < 0 ? -1 : 1;
+        if (p.attackBuffKind === 1) {
+          atlas.draw(ctx, FXART.flameBig, x + side * size * .34, y - size * .08, size * .48, side > 0 ? .5 : -.5, .9);
+        } else if (p.attackBuffKind === 2) {
+          this.drawGiantAxe(x + side * size * .34, y - size * .04, size * .62, side * (.6 + swing * 1.8));
+        } else if (p.attackBuffKind === 3) {
+          this.drawSwordWave(x + side * size * .32, y - size * .08, size * .58, side > 0 ? Math.PI / 2 : -Math.PI / 2);
+        }
+      }
 
       // Health + level
       const w = size * 0.48;
@@ -901,6 +913,27 @@ export class Renderer {
     ctx.beginPath();
     ctx.arc(x, y, r, 0, Math.PI * 2);
     ctx.fill();
+    ctx.restore();
+  }
+
+  private drawCompanion(ctx: CanvasRenderingContext2D, defId: number, x: number, y: number, size: number, left: boolean, team: string, anim: number): void {
+    ctx.save(); ctx.translate(x, y); ctx.scale(left ? -1 : 1, 1);
+    const bob = Math.sin(anim * .22) * size * .025; ctx.translate(0, bob);
+    const beast = defId === 9;
+    ctx.strokeStyle = '#211923'; ctx.lineWidth = Math.max(1.5, size * .045); ctx.lineJoin = 'round';
+    ctx.fillStyle = beast ? '#6f5842' : '#6d8a48';
+    ctx.beginPath(); ctx.ellipse(0, 0, size * (beast ? .34 : .3), size * .22, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.arc(size * .29, -size * .12, size * (beast ? .2 : .23), 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    if (beast) {
+      ctx.beginPath(); ctx.moveTo(size*.18,-size*.27); ctx.lineTo(size*.22,-size*.43); ctx.lineTo(size*.31,-size*.27); ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(size*.36,-size*.25); ctx.lineTo(size*.43,-size*.4); ctx.lineTo(size*.49,-size*.2); ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.strokeStyle='#443323'; ctx.lineWidth=size*.08; ctx.beginPath(); ctx.moveTo(-size*.3,-size*.04); ctx.quadraticCurveTo(-size*.52,-size*.25,-size*.57,-size*.05); ctx.stroke();
+    } else {
+      ctx.fillStyle='#b8cf72'; ctx.beginPath(); ctx.arc(size*.4,-size*.1,size*.08,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle='#e7dcc0'; for(const ox of [.32,.43]) { ctx.beginPath(); ctx.moveTo(size*ox,0); ctx.lineTo(size*(ox+.05),size*.13); ctx.lineTo(size*(ox+.09),-.01); ctx.closePath(); ctx.fill(); }
+    }
+    ctx.fillStyle='#ffe76b'; ctx.beginPath(); ctx.arc(size*.38,-size*.17,size*.035,0,Math.PI*2); ctx.fill();
+    ctx.strokeStyle=team; ctx.lineWidth=size*.035; ctx.beginPath(); ctx.arc(0,0,size*.38,.1,Math.PI-.1); ctx.stroke();
     ctx.restore();
   }
 

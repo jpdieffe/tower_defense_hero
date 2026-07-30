@@ -298,6 +298,8 @@ export interface PlayerState {
   skills: number[];
   /** Independent cooldown by learned skill id. Signature power stays on Hero. */
   powerCooldowns: number[];
+  attackBuffKind: number;
+  attackBuffT: number;
   skillPoints: number;
   ready: boolean;
   kills: number;
