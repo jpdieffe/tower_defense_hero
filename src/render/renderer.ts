@@ -3,7 +3,7 @@ import { makeLocalRng } from '../core/rng';
 import { CRYSTAL, FXART } from '../content/art';
 import { buildMapRuntime, isBuildable, isBuildSite, type MapRuntime } from '../content/maps';
 import { enemyDef, ENEMY_TINTS } from '../content/enemies';
-import { heroDef } from '../content/heroes';
+import { HERO, heroDef } from '../content/heroes';
 import { itemDef } from '../content/items';
 import { towerDef, computeTowerStats } from '../content/towers';
 import {
@@ -829,7 +829,9 @@ export class Renderer {
       // Health + level
       const w = size * 0.48;
       const bh = Math.max(3, cell * 0.08);
-      const top = y - size * 0.42;
+      // The Orc's profile has a tall topknot, shoulder spikes, and raised axe;
+      // keep his HUD above the silhouette instead of across his face.
+      const top = y - size * (h.defId === HERO.Orc ? 0.92 : 0.7);
       ctx.save();
       ctx.fillStyle = 'rgba(0,0,0,0.65)';
       ctx.fillRect(x - w / 2 - 1, top - 1, w + 2, bh + 2);
