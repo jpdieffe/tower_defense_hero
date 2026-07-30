@@ -344,11 +344,12 @@ function cmdAbility(ctx: Ctx, p: PlayerState, skillId: number, x: Fx, y: Fx): vo
     addGround(ctx, p.idx, GroundKind.ArrowStorm, tx, ty, ab.radius, dmg, DmgType.Energy, 0, sec(3.5));
     emit(ctx, EventKind.HeroAbility, tx, ty, AbilityKind.ArrowStorm, ab.radius, p.idx);
   } else if (effect === 'sentry' || effect === 'totem') {
-    spawnSentry(ctx, p.idx, tx, ty, -1);
+    spawnSentry(ctx, p.idx, tx, ty, -1, effect === 'totem' ? TOWER.Totem : TOWER.Sentinel);
     emit(ctx, EventKind.HeroAbility, tx, ty, AbilityKind.Sentry, ab.radius, p.idx);
   } else if (effect === 'guardian' || effect === 'wolves') {
-    spawnSentry(ctx, p.idx, tx - fx(0.6), ty, -1);
-    spawnSentry(ctx, p.idx, tx + fx(0.6), ty, -1);
+    const summonDef = effect === 'wolves' ? TOWER.Kennel : (skillId === 25 ? TOWER.Rune : TOWER.Templar);
+    spawnSentry(ctx, p.idx, tx - fx(0.6), ty, -1, summonDef);
+    spawnSentry(ctx, p.idx, tx + fx(0.6), ty, -1, summonDef);
     emit(ctx, EventKind.HeroAbility, tx, ty, AbilityKind.Sentry, ab.radius, p.idx);
   } else switch (baseAb.kind) {
     case AbilityKind.ShieldSlam: {
@@ -373,7 +374,7 @@ function cmdAbility(ctx: Ctx, p: PlayerState, skillId: number, x: Fx, y: Fx): vo
       break;
     }
     case AbilityKind.Sentry: {
-      spawnSentry(ctx, p.idx, tx, ty, baseAb.duration);
+      spawnSentry(ctx, p.idx, tx, ty, baseAb.duration, TOWER.Sentinel);
       emit(ctx, EventKind.HeroAbility, tx, ty, AbilityKind.Sentry, ab.radius, p.idx);
       break;
     }
@@ -424,20 +425,25 @@ function cmdUseItem(ctx: Ctx, p: PlayerState, slot: number, x: Fx, y: Fx): void 
       s.globalSlowT = Math.max(s.globalSlowT, d.duration);
       break;
     case ItemKind.TurretKit:
+      spawnSentry(ctx, p.idx, x, y, d.duration, TOWER.Sentinel);
+      break;
     case ItemKind.GolemCore:
-      spawnSentry(ctx, p.idx, x, y, d.duration);
+      spawnSentry(ctx, p.idx, x, y, d.duration, TOWER.Templar);
       break;
     case ItemKind.Overload:
     case ItemKind.ThunderDrum:
       s.overload[p.idx] = Math.max(s.overload[p.idx], d.duration);
       break;
     case ItemKind.PhoenixEgg:
-      spawnSentry(ctx, p.idx, x, y, -1);
+      spawnSentry(ctx, p.idx, x, y, -1, TOWER.Brazier);
       break;
     case ItemKind.WolfIdol:
+      spawnSentry(ctx, p.idx, x - fx(0.6), y, -1, TOWER.Kennel);
+      spawnSentry(ctx, p.idx, x + fx(0.6), y, -1, TOWER.Kennel);
+      break;
     case ItemKind.Moonfang:
-      spawnSentry(ctx, p.idx, x - fx(0.6), y, -1);
-      spawnSentry(ctx, p.idx, x + fx(0.6), y, -1);
+      spawnSentry(ctx, p.idx, x - fx(0.6), y, -1, TOWER.Moonwell);
+      spawnSentry(ctx, p.idx, x + fx(0.6), y, -1, TOWER.Moonwell);
       break;
     case ItemKind.StormBottle:
       addGround(ctx, p.idx, GroundKind.ArrowStorm, x, y, d.radius, d.damage, DmgType.Energy, 20, d.duration);
@@ -1727,7 +1733,7 @@ function spawnWeaponProjectile(
   ctx.s.projectiles.push(p);
 }
 
-function spawnSentry(ctx: Ctx, owner: number, x: Fx, y: Fx, duration: number): void {
+function spawnSentry(ctx: Ctx, owner: number, x: Fx, y: Fx, duration: number, defId: number = TOWER.Sentinel): void {
   const s = ctx.s;
   // Persistent companions are intentionally capped per hero. This keeps long
   // co-op sessions bounded without making an existing summon disappear.
@@ -1737,7 +1743,7 @@ function spawnSentry(ctx: Ctx, owner: number, x: Fx, y: Fx, duration: number): v
   const t: Tower = {
     id: nextId(s),
     owner,
-    defId: TOWER.Guard,
+    defId,
     power: 1,
     level: 4,
     cx, cy,
@@ -1757,7 +1763,7 @@ function spawnSentry(ctx: Ctx, owner: number, x: Fx, y: Fx, duration: number): v
     pulse: 0,
   };
   s.towers.push(t);
-  emit(ctx, EventKind.TowerBuilt, t.x, t.y, TOWER.Guard, 1, owner);
+  emit(ctx, EventKind.TowerBuilt, t.x, t.y, defId, 1, owner);
 }
 
 // ============================================================== ground effects

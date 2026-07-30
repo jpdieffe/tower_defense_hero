@@ -221,6 +221,56 @@ function drawUpgradeStage(
     ctx.closePath();
     stroke(ctx, accent, 0.035);
   }
+
+  // Each paid level adds a new, large silhouette landmark.
+  if (level >= 2) {
+    for (const sx of [-1, 1]) {
+      ctx.save(); ctx.translate(sx * .34, .08); ctx.rotate(sx * -.16);
+      rounded(ctx, 0, -.08, .055, .42, .018); ink(ctx, '#5a412b', .018);
+      poly(ctx, [[0,-.28],[sx*.19,-.22],[0,-.12]]); ink(ctx, accent, .018); ctx.restore();
+    }
+  }
+  if (level >= 3) {
+    for (const sx of [-1, 1]) {
+      poly(ctx, [[sx*.23,.18],[sx*.34,-.02],[sx*.25,-.22],[sx*.16,-.02]]);
+      ink(ctx, speed > power ? '#9feaff' : '#ffb36b', .022);
+    }
+  }
+  if (level >= 4) {
+    if (power > speed) {
+      for (const sx of [-1, 1]) {
+        poly(ctx, [[sx*.3,.23],[sx*.48,.1],[sx*.44,-.19],[sx*.27,-.11]]);
+        ink(ctx, '#8d4d3c', .028);
+      }
+    } else {
+      ctx.save(); ctx.rotate(level >= 5 ? Math.PI / 8 : 0);
+      for (let i=0;i<4;i++) { ctx.rotate(Math.PI/2); poly(ctx, [[.28,-.05],[.48,-.12],[.43,.08],[.28,.06]]); ink(ctx,'#78b9c9',.02); }
+      ctx.restore();
+    }
+  }
+}
+
+function drawUpgradeHeadgear(ctx: CanvasRenderingContext2D, s: TowerArtState, accent: string): void {
+  const t = trackSplit(s.power, s.level);
+  // Power upgrades add increasingly massive side blades and cannon housings.
+  for (let i = 0; i < t.power; i++) {
+    const side = i % 2 ? 1 : -1;
+    const row = Math.floor(i / 2);
+    ctx.save(); ctx.translate(side * (.2 + row * .07), .1 - row * .1); ctx.rotate(side * .18);
+    rounded(ctx, 0, 0, .13 + row * .03, .34, .035); ink(ctx, i >= 2 ? '#7f4050' : '#6f5960', .022);
+    poly(ctx, [[0,-.26],[.07,-.14],[-.07,-.14]]); ink(ctx, '#ffd18a', .018);
+    ctx.restore();
+  }
+  // Speed upgrades add bright fins and orbiting accelerator nodes.
+  for (let i = 0; i < t.speed; i++) {
+    const a = (i / Math.max(1, t.speed)) * Math.PI * 2 + s.time / 850;
+    const r = .27 + Math.floor(i / 2) * .035;
+    circle(ctx, Math.cos(a) * r, Math.sin(a) * r, .055);
+    ctx.globalAlpha = .72 + Math.sin(s.time / 140 + i) * .18; ink(ctx, accent, .016); ctx.globalAlpha = 1;
+  }
+  if (s.level >= 5) {
+    circle(ctx, 0, 0, .43); ctx.globalAlpha=.5; stroke(ctx, accent, .035); ctx.globalAlpha=1;
+  }
 }
 
 // ----------------------------------------------------------------- heads
@@ -747,6 +797,7 @@ export function drawTowerSprite(
   ctx.scale(size * grow, size * grow);
   ctx.lineJoin = 'round';
   ctx.translate(0, -0.03);
+  drawUpgradeHeadgear(ctx, s, d.accent);
   head(ctx, d.accent, s);
   ctx.restore();
   ctx.restore();
