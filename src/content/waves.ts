@@ -187,7 +187,7 @@ function weightedPick(rng: RngHolder, pool: readonly PoolEntry[], wave: number):
 export function generateShop(matchSeed: number, wave: number): { kind: number; id: number }[] {
   const rng: RngHolder = { rng: deriveSeed(matchSeed, wave * 104729 + 7) };
   const relicIds = shuffle(rng, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
-  const itemIds = shuffle(rng, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+  const itemIds = shuffle(rng, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]);
   return [
     { kind: 0, id: relicIds[0] },
     { kind: 0, id: relicIds[1] },

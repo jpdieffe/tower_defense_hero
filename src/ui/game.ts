@@ -93,6 +93,7 @@ export class GameScreen {
     towerButtons: { btn: HTMLElement; defId: number; cls: number }[];
     abilityBtn: HTMLElement;
     abilityCd: HTMLElement;
+    powersWrap: HTMLElement;
     itemsWrap: HTMLElement;
     shopBtn: HTMLElement;
   };
@@ -449,12 +450,13 @@ export class GameScreen {
     const abilityCd = el('div', { class: 'cd' }, '');
     const hd = heroDef(this.me.hero.defId);
     const abilityBtn = tapButton(
-      'action-btn',
-      () => this.openPowerPicker(),
+      'action-btn power-slot signature',
+      () => this.armAbility(-1),
       el('div', { class: 'big' }, abilityIcon(hd.ability.kind)),
-      el('div', { class: 'tiny' }, 'Skill'),
+      el('div', { class: 'tiny' }, hd.ability.name),
       abilityCd,
     );
+    const powersWrap = el('div', { class: 'powers-row' }, abilityBtn);
 
     const itemsWrap = el('div', { class: 'action-row items-strip' });
 
@@ -469,7 +471,7 @@ export class GameScreen {
 
     const actionRow = el('div', { class: 'action-row' }, abilityBtn, itemsWrap, shopBtn, readyBtn);
     const inspector = el('div', { class: 'inspector' });
-    const bottom = el('div', { class: 'hud-bottom hero-bottom' }, actionRow);
+    const bottom = el('div', { class: 'hud-bottom hero-bottom' }, powersWrap, actionRow);
 
     this.root.appendChild(top);
     this.root.appendChild(banner);
@@ -480,13 +482,14 @@ export class GameScreen {
     this.hud = {
       livesVal, waveVal, timerVal, goldSelf, matePills, netPill,
       banner, warning, buildBar, classButtons, actionRow, readyBtn, inspector, towerButtons,
-      abilityBtn, abilityCd, itemsWrap, shopBtn,
+      abilityBtn, abilityCd, powersWrap, itemsWrap, shopBtn,
     };
 
     // Start on the tab matching the hero the player picked.
     this.buildClass = Math.min(TOWER_CLASSES.length - 1, Math.max(0, this.me.hero.defId));
     this.applyBuildClass();
     this.refreshItems();
+    this.refreshPowers();
     this.updateHud();
   }
 
@@ -536,6 +539,12 @@ export class GameScreen {
     } else {
       this.hud.abilityCd.style.display = 'none';
     }
+    for (const cd of Array.from(this.hud.powersWrap.querySelectorAll<HTMLElement>('.shared-cd'))) {
+      if (!h.alive) { setText(cd, `☠${Math.ceil(h.respawn / TICK_RATE)}`); cd.style.display = ''; }
+      else if (h.abilityCd > 0) { setText(cd, String(Math.ceil(h.abilityCd / TICK_RATE))); cd.style.display = ''; }
+      else cd.style.display = 'none';
+    }
+    this.refreshPowers();
 
     // Affordability shading
     for (const { btn, defId } of this.hud.towerButtons) {
@@ -714,39 +723,12 @@ export class GameScreen {
     this.hud.buildBar.scrollLeft = 0;
   }
 
-  private openPowerPicker(): void {
+  private armAbility(skillId: number): void {
     const h = this.me.hero;
     if (!h.alive || h.abilityCd > 0) {
       audio.play('deny', { volume: 0.5 });
       return;
     }
-    if (this.overlay) return;
-    const signature = heroDef(h.defId).ability;
-    const powers = [
-      { id: -1, name: signature.name, desc: signature.desc, icon: abilityIcon(signature.kind), active: signature },
-      ...activeSkills(this.me.skills).map((sk) => ({ id: sk.id, name: sk.name, desc: sk.desc.replace('ACTIVE • ', ''), icon: sk.icon, active: sk.active! })),
-    ];
-    const panel = el('div', { class: 'power-panel' },
-      el('div', { class: 'skill-kicker' }, 'HERO POWERS'),
-      el('h2', {}, 'Choose a power'),
-      el('p', { class: 'skill-sub' }, 'Your signature power is always available. Unlock more in the skill tree.'),
-      el('div', { class: 'power-grid' }, ...powers.map((power) => tapButton('power-card', () => {
-        this.closeOverlay();
-        this.armAbility(power.id);
-      }, el('div', { class: 'power-icon' }, power.icon), el('div', {},
-        el('div', { class: 'skill-name' }, power.name),
-        el('div', { class: 'skill-desc' }, power.desc),
-        el('div', { class: 'power-meta' }, `${Math.ceil(power.active.cooldown / TICK_RATE)}s cooldown${power.active.targeted ? ' • aimed' : ' • instant'}`),
-      )))),
-      tapButton('btn ghost skill-later', () => this.closeOverlay(), 'Cancel'),
-    );
-    const overlay = el('div', { class: 'overlay skill-overlay' }, panel);
-    this.overlay = overlay;
-    this.root.appendChild(overlay);
-  }
-
-  private armAbility(skillId: number): void {
-    const h = this.me.hero;
     const learned = skillId >= 0 ? skillDef(skillId) : null;
     const ab = learned?.active ?? heroDef(h.defId).ability;
     this.aimingSkillId = skillId;
@@ -781,7 +763,31 @@ export class GameScreen {
 
   private refreshActionRow(): void {
     toggleClass(this.hud.abilityBtn, 'armed', this.aimingKind === 'ability');
+    for (const node of Array.from(this.hud.powersWrap.querySelectorAll<HTMLElement>('.power-slot'))) {
+      toggleClass(node, 'armed', this.aimingKind === 'ability' && Number(node.dataset.skillId) === this.aimingSkillId);
+    }
     this.refreshItems();
+  }
+
+  private refreshPowers(): void {
+    const learned = activeSkills(this.me.skills);
+    const key = learned.map((s) => s.id).join(',');
+    if (this.hud.powersWrap.dataset.key === key) return;
+    this.hud.powersWrap.dataset.key = key;
+    const signature = this.hud.abilityBtn;
+    signature.dataset.skillId = '-1';
+    clear(this.hud.powersWrap);
+    this.hud.powersWrap.appendChild(signature);
+    for (const sk of learned) {
+      const btn = tapButton('action-btn power-slot', () => this.armAbility(sk.id),
+        el('div', { class: 'big' }, sk.icon),
+        el('div', { class: 'tiny' }, sk.name),
+        el('div', { class: 'cd shared-cd' }, ''),
+      );
+      btn.dataset.skillId = String(sk.id);
+      btn.title = sk.desc;
+      this.hud.powersWrap.appendChild(btn);
+    }
   }
 
   /** Arm the "move my squad" tap for a barracks-style tower. */

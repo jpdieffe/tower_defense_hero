@@ -387,9 +387,11 @@ function cmdUseItem(ctx: Ctx, p: PlayerState, slot: number, x: Fx, y: Fx): void 
 
   switch (d.kind) {
     case ItemKind.Meteor:
+    case ItemKind.Sunstone:
       spawnMeteor(ctx, p.idx, x, y, d.radius, d.damage, d.duration, d.groundDps);
       break;
     case ItemKind.FrostNova:
+    case ItemKind.BlizzardOrb:
       for (const e of s.enemies) {
         if (e.dead) continue;
         dealDamage(ctx, e, d.damage, DmgType.Frost, p.idx, 0);
@@ -399,27 +401,33 @@ function cmdUseItem(ctx: Ctx, p: PlayerState, slot: number, x: Fx, y: Fx): void 
       emit(ctx, EventKind.Freeze, 0, 0, d.duration, 0, p.idx);
       break;
     case ItemKind.GoldCache:
+    case ItemKind.RoyalCoffer:
       p.gold += d.value;
       p.goldEarned += d.value;
       emit(ctx, EventKind.GoldGain, p.hero.x, p.hero.y, d.value, 0, p.idx);
       break;
     case ItemKind.RepairKit:
+    case ItemKind.LifeBloom:
       s.lives = Math.min(s.maxLives, s.lives + d.value);
       break;
     case ItemKind.TimeWarp:
+    case ItemKind.ChronoBell:
       s.globalSlowPct = Math.max(s.globalSlowPct, d.slowPct);
       s.globalSlowT = Math.max(s.globalSlowT, d.duration);
       break;
     case ItemKind.TurretKit:
+    case ItemKind.GolemCore:
       spawnSentry(ctx, p.idx, x, y, d.duration);
       break;
     case ItemKind.Overload:
+    case ItemKind.ThunderDrum:
       s.overload[p.idx] = Math.max(s.overload[p.idx], d.duration);
       break;
     case ItemKind.PhoenixEgg:
       spawnSentry(ctx, p.idx, x, y, -1);
       break;
     case ItemKind.WolfIdol:
+    case ItemKind.Moonfang:
       spawnSentry(ctx, p.idx, x - fx(0.6), y, -1);
       spawnSentry(ctx, p.idx, x + fx(0.6), y, -1);
       break;
@@ -983,7 +991,7 @@ function updateWorldItems(ctx: Ctx): void {
       cy = nextInt(s, Math.max(1, map.h - 2)) + 1;
       if (!map.blocked.some((b) => b[0] === cx && b[1] === cy)) break;
     }
-    const drop = { id: nextId(s), itemId: nextInt(s, 7), x: cellCenterFx(cx), y: cellCenterFx(cy), life: sec(35), pulse: 0 };
+    const drop = { id: nextId(s), itemId: nextInt(s, 19), x: cellCenterFx(cx), y: cellCenterFx(cy), life: sec(35), pulse: 0 };
     s.worldItems.push(drop);
     s.nextItemSpawn = sec(16 + nextInt(s, 20));
     emit(ctx, EventKind.ItemSpawn, drop.x, drop.y, drop.itemId, 0, -1);

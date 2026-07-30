@@ -633,6 +633,24 @@ input.code {
   margin-inline: auto;
 }
 
+.powers-row {
+  display:flex;
+  gap:7px;
+  width:min(100%,920px);
+  margin-inline:auto;
+  padding:5px 6px;
+  overflow-x:auto;
+  scrollbar-width:none;
+  border:1px solid rgba(126,232,255,.18);
+  border-radius:15px;
+  background:linear-gradient(90deg,rgba(22,38,66,.92),rgba(11,19,35,.88));
+}
+.powers-row::-webkit-scrollbar { display:none; }
+.power-slot { min-width:72px; border-color:rgba(111,216,189,.34); background:radial-gradient(circle at 50% 15%,rgba(80,130,170,.28),rgba(255,255,255,.05)); }
+.power-slot.signature { border-color:rgba(255,212,71,.5); }
+.power-slot .tiny { max-width:68px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.power-slot.armed { border-color:#fff2a8; box-shadow:0 0 0 2px rgba(255,212,71,.3),0 0 18px rgba(255,212,71,.22); }
+
 .hero-bottom .items-strip { flex: 0 1 auto; }
 
 .hud-bottom > .action-row { width: 100%; }

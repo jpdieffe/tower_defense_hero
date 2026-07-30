@@ -52,6 +52,32 @@ export const SKILLS: readonly SkillDef[] = [
     active: { targeted: true, radius: fx(3.4), castRange: fx(7), cooldown: sec(18), damage: 55, damagePerLevel: 14, effect: 'storm' } },
   { id: 14, branch: 'Tactics', tier: 5, name: 'Eternal Totem', desc: 'ACTIVE • Plant a persistent runic familiar.', icon: '🔮', requires: 13,
     active: { targeted: true, radius: fx(0.8), castRange: fx(6), cooldown: sec(30), damage: 0, damagePerLevel: 0, effect: 'totem' } },
+  // Advanced forks: each branch now splits after its second tier, letting a
+  // hero build toward burst, control, recovery, or companions.
+  { id: 15, branch: 'Might', tier: 3, name: 'Cyclone Axe', desc: 'ACTIVE • A wider, harder whirlwind for holding a crowded lane.', icon: '🪓', requires: 1,
+    active: { targeted: false, radius: fx(2.8), castRange: 0, cooldown: sec(13), damage: 105, damagePerLevel: 23, effect: 'whirlwind' } },
+  { id: 16, branch: 'Might', tier: 4, name: 'Starfall', desc: 'ACTIVE • Bombard a distant area with celestial fire.', icon: '🌠', requires: 15,
+    active: { targeted: true, radius: fx(2.6), castRange: fx(7.5), cooldown: sec(18), damage: 230, damagePerLevel: 48, effect: 'meteor' } },
+  { id: 17, branch: 'Might', tier: 5, name: 'Warband', desc: 'ACTIVE • Call two oathbound warriors that remain for the battle.', icon: '⚔️', requires: 16,
+    active: { targeted: true, radius: fx(1), castRange: fx(5), cooldown: sec(32), damage: 0, damagePerLevel: 0, effect: 'guardian' } },
+  { id: 18, branch: 'Might', tier: 6, name: 'Worldsplitter', desc: 'ACTIVE • Detonate an enormous high-damage impact zone.', icon: '🌋', requires: 17,
+    active: { targeted: true, radius: fx(3.6), castRange: fx(6), cooldown: sec(24), damage: 340, damagePerLevel: 62, effect: 'meteor' } },
+  { id: 19, branch: 'Survival', tier: 3, name: 'Glacial Ring', desc: 'ACTIVE • Freeze a broad ring around your hero.', icon: '🧊', requires: 4,
+    active: { targeted: false, radius: fx(3.5), castRange: 0, cooldown: sec(18), damage: 74, damagePerLevel: 16, effect: 'frost' } },
+  { id: 20, branch: 'Survival', tier: 4, name: 'Second Wind', desc: 'ACTIVE • Quickly restore 35% health in a radiant pulse.', icon: '💚', requires: 19,
+    active: { targeted: false, radius: fx(2.5), castRange: 0, cooldown: sec(14), damage: 0, damagePerLevel: 0, effect: 'heal' } },
+  { id: 21, branch: 'Survival', tier: 5, name: 'Frostbound Pack', desc: 'ACTIVE • Summon two enduring winter guardians.', icon: '🐾', requires: 20,
+    active: { targeted: true, radius: fx(1), castRange: fx(5), cooldown: sec(30), damage: 0, damagePerLevel: 0, effect: 'wolves' } },
+  { id: 22, branch: 'Survival', tier: 6, name: 'Aurora Haven', desc: 'ACTIVE • A vast restorative pulse that also harms nearby foes.', icon: '🌈', requires: 21,
+    active: { targeted: false, radius: fx(4), castRange: 0, cooldown: sec(24), damage: 110, damagePerLevel: 24, effect: 'heal' } },
+  { id: 23, branch: 'Tactics', tier: 3, name: 'Thunder Field', desc: 'ACTIVE • Saturate a chosen lane with crackling energy.', icon: '🌩️', requires: 7,
+    active: { targeted: true, radius: fx(3), castRange: fx(7), cooldown: sec(14), damage: 52, damagePerLevel: 13, effect: 'storm' } },
+  { id: 24, branch: 'Tactics', tier: 4, name: 'Runic Watcher', desc: 'ACTIVE • Place an enduring arcane watcher.', icon: '👁️', requires: 23,
+    active: { targeted: true, radius: fx(0.8), castRange: fx(6), cooldown: sec(25), damage: 0, damagePerLevel: 0, effect: 'sentry' } },
+  { id: 25, branch: 'Tactics', tier: 5, name: 'Twin Constructs', desc: 'ACTIVE • Deploy a pair of permanent clockwork familiars.', icon: '⚙️', requires: 24,
+    active: { targeted: true, radius: fx(1.1), castRange: fx(6), cooldown: sec(32), damage: 0, damagePerLevel: 0, effect: 'guardian' } },
+  { id: 26, branch: 'Tactics', tier: 6, name: 'Eye of the Tempest', desc: 'ACTIVE • Create the largest and longest-ranged storm.', icon: '🌀', requires: 25,
+    active: { targeted: true, radius: fx(4), castRange: fx(8), cooldown: sec(22), damage: 82, damagePerLevel: 18, effect: 'storm' } },
 ];
 
 export const skillDef = (id: number): SkillDef => SKILLS[id] ?? SKILLS[0];

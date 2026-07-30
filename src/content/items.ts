@@ -79,6 +79,14 @@ export const ItemKind = {
   WolfIdol: 8,
   StormBottle: 9,
   Elixir: 10,
+  Sunstone: 11,
+  BlizzardOrb: 12,
+  RoyalCoffer: 13,
+  LifeBloom: 14,
+  ChronoBell: 15,
+  GolemCore: 16,
+  ThunderDrum: 17,
+  Moonfang: 18,
 } as const;
 
 export interface ItemDef {
@@ -170,6 +178,25 @@ export const ITEMS: readonly ItemDef[] = [
     radius: fx(3), duration: sec(6), damage: 72, dmgType: DmgType.Energy }),
   item({ id: ItemKind.Elixir, key: 'elixir', name: 'Heroic Elixir', icon: '🧪',
     desc: 'Fully restore your hero and reset the power cooldown.', cost: 230, charges: 2 }),
+  item({ id: ItemKind.Sunstone, key: 'sunstone', name: 'Sunstone', icon: '☀️',
+    desc: 'Crash a radiant star into a large area for 560 damage.', cost: 310, targeted: true,
+    radius: fx(3.1), damage: 560, dmgType: DmgType.Fire, groundKind: GroundKind.Napalm, groundDps: 55, duration: sec(5) }),
+  item({ id: ItemKind.BlizzardOrb, key: 'blizzard-orb', name: 'Blizzard Orb', icon: '🌨️',
+    desc: 'Freeze every enemy for 4 seconds and deal 110 frost damage.', cost: 290,
+    damage: 110, dmgType: DmgType.Frost, duration: sec(4) }),
+  item({ id: ItemKind.RoyalCoffer, key: 'royal-coffer', name: 'Royal Coffer', icon: '👑',
+    desc: 'Instantly gain 420 gold.', cost: 270, value: 420 }),
+  item({ id: ItemKind.LifeBloom, key: 'life-bloom', name: 'Life Bloom', icon: '🌺',
+    desc: 'Restore 7 lives to the keep.', cost: 360, value: 7 }),
+  item({ id: ItemKind.ChronoBell, key: 'chrono-bell', name: 'Chrono Bell', icon: '🕰️',
+    desc: 'Slow every enemy by 60% for 10 seconds.', cost: 300, charges: 2, duration: sec(10), slowPct: 60 }),
+  item({ id: ItemKind.GolemCore, key: 'golem-core', name: 'Golem Core', icon: '🗿',
+    desc: 'Awaken a permanent stone guardian where you aim.', cost: 350, targeted: true, duration: -1 }),
+  item({ id: ItemKind.ThunderDrum, key: 'thunder-drum', name: 'Thunder Drum', icon: '🥁',
+    desc: 'Empower your companions to attack 120% faster for 12 seconds.', cost: 290,
+    charges: 2, duration: sec(12), value: 120 }),
+  item({ id: ItemKind.Moonfang, key: 'moonfang', name: 'Moonfang Idol', icon: '🌙',
+    desc: 'Call a permanent pair of moonlit spirit guardians.', cost: 370, targeted: true, duration: -1 }),
 ];
 
 export function itemDef(id: number): ItemDef {

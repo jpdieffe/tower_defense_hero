@@ -631,6 +631,33 @@ export function drawHeroSprite(
   // squash establishes the same isometric ground plane as the battlefield.
   ctx.save();
   ctx.translate(x, y);
+  // Layered isometric base: a small diamond plate visually anchors the upright
+  // miniature to the same 2:1 ground plane as tiles and scenery.
+  ctx.globalAlpha = 0.48;
+  const plate = ctx.createLinearGradient(-size * 0.34, 0, size * 0.34, size * 0.3);
+  plate.addColorStop(0, '#dff8ff');
+  plate.addColorStop(0.45, state.team);
+  plate.addColorStop(1, '#10192a');
+  ctx.fillStyle = plate;
+  ctx.beginPath();
+  ctx.moveTo(0, size * 0.17);
+  ctx.lineTo(size * 0.34, size * 0.3);
+  ctx.lineTo(0, size * 0.43);
+  ctx.lineTo(-size * 0.34, size * 0.3);
+  ctx.closePath();
+  ctx.fill();
+  ctx.globalAlpha = 0.7;
+  ctx.strokeStyle = state.team;
+  ctx.lineWidth = Math.max(1.2, size * 0.018);
+  ctx.stroke();
+  if (state.cast > 0) {
+    ctx.globalAlpha = 0.22 + state.cast * 0.28;
+    ctx.strokeStyle = '#e9fbff';
+    ctx.lineWidth = size * 0.035;
+    ctx.beginPath();
+    ctx.ellipse(0, size * 0.3, size * (0.42 + state.cast * 0.08), size * (0.19 + state.cast * 0.03), 0, 0, Math.PI * 2);
+    ctx.stroke();
+  }
   ctx.globalAlpha = 0.3;
   ctx.fillStyle = '#000';
   ctx.beginPath();
@@ -658,6 +685,11 @@ export function drawHeroSprite(
   ctx.transform(1, 0, view === 'side' ? -0.16 : -0.08, 1, Math.abs(facingX) * 0.035, 0);
   ctx.lineJoin = 'round';
   ctx.miterLimit = 2;
+  // A cool key light and warm ground bounce add depth without flattening each
+  // class's own palette or silhouette.
+  ctx.shadowColor = state.cast > 0 ? 'rgba(150,235,255,.8)' : 'rgba(8,12,25,.55)';
+  ctx.shadowBlur = state.cast > 0 ? 0.09 : 0.035;
+  ctx.shadowOffsetY = 0.025;
   drawIsoLegs(ctx, defId, pose);
   paint(ctx, pose);
   ctx.restore();
