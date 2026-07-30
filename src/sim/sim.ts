@@ -1748,6 +1748,7 @@ function spawnSentry(ctx: Ctx, owner: number, x: Fx, y: Fx, duration: number, de
   if (duration < 0 && s.towers.filter((t) => t.owner === owner && t.temp < 0).length >= 12) return;
   const cx = Math.floor(x / FX_ONE);
   const cy = Math.floor(y / FX_ONE);
+  const rally = nearestLaneSpot(ctx.rt, x, y);
   const t: Tower = {
     id: nextId(s),
     owner,
@@ -1758,7 +1759,7 @@ function spawnSentry(ctx: Ctx, owner: number, x: Fx, y: Fx, duration: number, de
     x: cellCenterFx(cx),
     y: cellCenterFx(cy),
     dx: 0, dy: fx(-1),
-    rx: 0, ry: 0,
+    rx: rally.x, ry: rally.y,
     cd: 0,
     targetMode: TargetMode.First,
     targetId: 0,
