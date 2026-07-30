@@ -127,6 +127,13 @@ body {
 .power-card { display:flex; gap:12px; align-items:flex-start; padding:14px; min-height:98px; text-align:left; color:#d9e2ed; border:1px solid #40516c; border-radius:12px; background:linear-gradient(145deg,#17243a,#101722); }
 .power-card:hover,.power-card:focus-visible { border-color:#ffd447; transform:translateY(-2px); }
 .power-icon { display:grid; place-items:center; flex:0 0 44px; height:44px; border-radius:10px; background:#28354a; color:#ffd447; font-size:25px; }
+.build-site-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+.build-site-choice { display:grid; grid-template-columns:62px 1fr; gap:11px; align-items:center; padding:13px; text-align:left; border:1px solid #52647d; border-radius:13px; background:linear-gradient(145deg,#1b2a3e,#101722); }
+.build-site-choice:hover { border-color:#ffd447; transform:translateY(-2px); }
+.build-site-choice.poor { opacity:.42; }
+.build-site-art { display:grid; place-items:center; height:58px; border-radius:12px; background:rgba(0,0,0,.3); font-size:28px; }
+.tower-cost { margin-top:5px; color:#ffd447; font-size:11px; font-weight:900; }
+@media(max-width:520px){.build-site-grid{grid-template-columns:1fr}.build-site-choice{padding:10px}}
 .power-meta { margin-top:7px; color:#6fd8bd; font-size:9px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; }
 @media (max-width:520px) { .power-grid { grid-template-columns:1fr; } .power-panel { padding:18px 12px; } }
 @media (max-width: 620px) { .skill-branch { grid-template-columns: 64px 1fr; } .skill-card { grid-column:2; } .branch-name { grid-row:1 / span 3; } .skill-panel { padding:18px 12px; } }
@@ -378,6 +385,9 @@ input.code {
   background: linear-gradient(180deg, rgba(6, 9, 16, 0.9), rgba(6, 9, 16, 0));
   flex-wrap: wrap;
 }
+.campaign-stage { padding:15px; border:1px solid rgba(255,212,71,.35); border-radius:13px; background:linear-gradient(145deg,#25344a,#121b29); }
+.campaign-stage .name { margin:5px 0; color:#fff2c0; font-size:20px; font-weight:900; }
+.campaign-stage .sub { color:#aebbd0; font-size:12px; line-height:1.45; }
 
 .self-pill { flex:0 0 auto; color:var(--gold); }
 .mate-strip { order:20; flex:0 0 100%; display:flex; gap:5px; min-width:0; overflow-x:auto; scrollbar-width:none; }

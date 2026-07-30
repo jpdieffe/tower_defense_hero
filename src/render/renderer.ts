@@ -1,7 +1,7 @@
 import { FX_ONE, fxToFloat } from '../core/fixed';
 import { makeLocalRng } from '../core/rng';
 import { CRYSTAL, FXART } from '../content/art';
-import { buildMapRuntime, isBuildable, type MapRuntime } from '../content/maps';
+import { buildMapRuntime, isBuildable, isBuildSite, type MapRuntime } from '../content/maps';
 import { enemyDef, ENEMY_TINTS } from '../content/enemies';
 import { heroDef } from '../content/heroes';
 import { itemDef } from '../content/items';
@@ -154,6 +154,7 @@ export class Renderer {
 
     if (this.terrain) ctx.drawImage(this.terrain, 0, 0);
 
+    this.drawBuildSites(state);
     this.drawBuildOverlay(state, view);
     this.drawGrounds(state);
     this.drawWorldItems(state);
@@ -304,7 +305,7 @@ export class Renderer {
     ctx.fillStyle = '#8effc0';
     for (let y = 0; y < def.h; y++) {
       for (let x = 0; x < def.w; x++) {
-        if (!isBuildable(this.rt, x, y) || occupied.has(y * def.w + x)) continue;
+        if (!isBuildSite(this.rt, x, y) || occupied.has(y * def.w + x)) continue;
         ctx.fillRect(this.cam.ox + x * cell + 1, this.cam.oy + y * cell + 1, cell - 2, cell - 2);
       }
     }
@@ -312,7 +313,7 @@ export class Renderer {
 
     const c = view.placeCell;
     if (!c) return;
-    const valid = isBuildable(this.rt, c.x, c.y) && !occupied.has(c.y * def.w + c.x);
+    const valid = isBuildSite(this.rt, c.x, c.y) && !occupied.has(c.y * def.w + c.x);
     const cx = this.cam.ox + (c.x + 0.5) * cell;
     const cy = this.cam.oy + (c.y + 0.5) * cell;
     const stats = computeTowerStats(view.placingDefId, 0, 1);
@@ -450,6 +451,25 @@ export class Renderer {
         }
       }
     }
+  }
+
+  private drawBuildSites(state: GameState): void {
+    const occupied = new Set(state.towers.filter((t) => t.temp === 0).map((t) => `${t.cx},${t.cy}`));
+    const ctx = this.ctx;
+    const cell = this.cam.cell;
+    ctx.save();
+    for (const [cx, cy] of this.rt.def.buildSites) {
+      if (occupied.has(`${cx},${cy}`)) continue;
+      const x = this.cam.ox + (cx + 0.5) * cell;
+      const y = this.cam.oy + (cy + 0.5) * cell;
+      ctx.fillStyle = 'rgba(55,38,22,.72)';
+      ctx.beginPath(); ctx.ellipse(x, y + cell * .2, cell * .38, cell * .18, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = '#ead9a5'; ctx.lineWidth = Math.max(2, cell * .055);
+      ctx.beginPath(); ctx.moveTo(x - cell * .12, y + cell * .18); ctx.lineTo(x - cell * .12, y - cell * .45); ctx.stroke();
+      ctx.fillStyle = '#f2c14e'; ctx.beginPath(); ctx.moveTo(x - cell * .1, y - cell * .42); ctx.lineTo(x + cell * .32, y - cell * .28); ctx.lineTo(x - cell * .1, y - cell * .12); ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = '#5c351d'; ctx.lineWidth = Math.max(1, cell * .025); ctx.stroke();
+    }
+    ctx.restore();
   }
 
   private drawWorldItems(state: GameState): void {

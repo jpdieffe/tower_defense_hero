@@ -18,6 +18,8 @@ export interface MapDef {
   core: readonly [number, number];
   /** Cells that can never hold a tower (scenery). */
   blocked: readonly (readonly [number, number])[];
+  /** Authored tower foundations. Player towers may only be built here. */
+  buildSites: readonly (readonly [number, number])[];
   propTiles: readonly number[];
 }
 
@@ -25,8 +27,8 @@ export const MAPS: readonly MapDef[] = [
   {
     id: 0,
     key: 'twin-gates',
-    name: 'Twin Gates',
-    blurb: 'Two lanes pour in from the north and merge before the keep.',
+    name: 'Greenwood Road',
+    blurb: 'The campaign begins along one winding woodland road.',
     w: 14,
     h: 20,
     ground: GROUND.grass,
@@ -34,12 +36,10 @@ export const MAPS: readonly MapDef[] = [
     // A dirt track on grass: maximum contrast, so the lane is unmistakable.
     road: GROUND.dirt,
     roadEdge: 'rgba(90,55,20,0.55)',
-    lanes: [
-      [[2, -1], [2, 4], [5, 4], [5, 8], [7, 8], [7, 11], [2, 11], [2, 15], [7, 15], [7, 18]],
-      [[11, -1], [11, 4], [9, 4], [9, 8], [7, 8], [7, 11], [2, 11], [2, 15], [7, 15], [7, 18]],
-    ],
+    lanes: [[[2, -1], [2, 4], [6, 4], [6, 8], [10, 8], [10, 12], [3, 12], [3, 16], [7, 16], [7, 18]]],
     core: [7, 18],
     blocked: [[0, 8], [1, 8], [12, 12], [13, 12], [0, 17], [13, 6], [5, 17], [9, 17]],
+    buildSites: [[4,2],[9,3],[3,6],[8,6],[12,9],[7,11],[1,14],[6,14],[10,15]],
     propTiles: [PROP.tree, PROP.bushLarge, PROP.bushSmall, PROP.spikePlant],
   },
   {
@@ -58,6 +58,7 @@ export const MAPS: readonly MapDef[] = [
     ],
     core: [7, 18],
     blocked: [[0, 1], [13, 1], [0, 13], [13, 16], [12, 17], [1, 17], [6, 0], [8, 0]],
+    buildSites: [[4,1],[10,2],[4,5],[8,5],[1,9],[6,9],[12,10],[6,13],[10,14]],
     propTiles: [PROP.rockLarge, PROP.rockMed, PROP.rockSmall, PROP.spikePlant],
   },
   {
@@ -77,6 +78,7 @@ export const MAPS: readonly MapDef[] = [
     ],
     core: [7, 18],
     blocked: [[6, 5], [7, 5], [6, 6], [7, 6], [0, 18], [13, 18], [2, 0], [11, 0]],
+    buildSites: [[2,2],[7,2],[11,4],[2,6],[7,9],[11,11],[4,12],[9,15],[5,16]],
     propTiles: [PROP.rockMed, PROP.rockLarge, PROP.bushSmall, PROP.leaf],
   },
 ];
@@ -185,6 +187,10 @@ export function isBuildable(rt: MapRuntime, cx: number, cy: number): boolean {
   if (cx < 0 || cy < 0 || cx >= w || cy >= h) return false;
   const i = cy * w + cx;
   return !rt.pathCells[i] && !rt.blockedCells[i];
+}
+
+export function isBuildSite(rt: MapRuntime, cx: number, cy: number): boolean {
+  return rt.def.buildSites.some(([x, y]) => x === cx && y === cy);
 }
 
 /** Spawn point for a lane, pulled one cell further off-screen. */

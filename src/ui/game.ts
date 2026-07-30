@@ -41,6 +41,7 @@ export interface GameScreenOptions {
   roomCode?: string;
   onLeave: () => void;
   onRestart: () => void;
+  onAdvance: () => void;
 }
 
 /**
@@ -335,6 +336,12 @@ export class GameScreen {
       audio.play('select', { volume: 0.5 });
       this.lastInspectKey = '';
       this.updateInspector();
+      return;
+    }
+
+    const vacantSite = getMap(this.state.mapId).buildSites.some(([x, y]) => x === cell.x && y === cell.y);
+    if (vacantSite) {
+      this.openBuildSitePicker(cell.x, cell.y);
       return;
     }
 
@@ -642,6 +649,31 @@ export class GameScreen {
     this.hud.inspector.classList.add('show');
   }
 
+  private openBuildSitePicker(cx: number, cy: number): void {
+    if (this.overlay || this.state.towers.some((t) => t.temp === 0 && t.cx === cx && t.cy === cy)) return;
+    const grid = el('div', { class: 'build-site-grid' });
+    for (const tower of TOWERS.slice(0, 4)) {
+      const affordable = this.me.gold >= tower.cost;
+      grid.appendChild(tapButton(`build-site-choice${affordable ? '' : ' poor'}`, () => {
+        if (!affordable) { audio.play('deny', { volume: .5 }); return; }
+        this.ls.queue(buildCmd(this.opts.localPlayer, tower.id, cx, cy));
+        this.closeOverlay();
+      },
+      el('div', { class: 'build-site-art' }, towerIcon(tower.id, this.opts.localPlayer)),
+      el('div', {}, el('div', { class: 'skill-name' }, tower.name),
+        el('div', { class: 'skill-desc' }, tower.desc),
+        el('div', { class: 'tower-cost' }, `${tower.cost} gold`))));
+    }
+    const panel = el('div', { class: 'power-panel build-site-panel' },
+      el('div', { class: 'skill-kicker' }, 'TOWER FOUNDATION'),
+      el('h2', {}, 'Raise a defense'),
+      el('p', { class: 'skill-sub' }, 'Choose a base tower. Upgrade it later into Power or Speed specializations.'),
+      grid,
+      tapButton('btn ghost skill-later', () => this.closeOverlay(), 'Cancel'));
+    this.overlay = el('div', { class: 'overlay skill-overlay' }, panel);
+    this.root.appendChild(this.overlay);
+  }
+
   private openSkillTree(): void {
     if (this.me.skillPoints <= 0 || this.overlay) return;
     const choices = availableSkills(this.me.skills);
@@ -729,6 +761,7 @@ export class GameScreen {
       audio.play('deny', { volume: 0.5 });
       return;
     }
+
     const learned = skillId >= 0 ? skillDef(skillId) : null;
     const ab = learned?.active ?? heroDef(h.defId).ability;
     this.aimingSkillId = skillId;
@@ -1130,6 +1163,7 @@ export class GameScreen {
     music.setIntensity(0);
     const s = this.state;
     const me = this.me;
+    const cleared = s.lives > 0 && s.wave >= 10;
     const panel = el(
       'div',
       { class: 'screen transparent' },
@@ -1139,9 +1173,10 @@ export class GameScreen {
         el(
           'div',
           { class: 'card' },
-          el('h2', {}, 'The keep has fallen'),
+          el('h2', {}, cleared ? 'Battlefield secured!' : 'The keep has fallen'),
           el('div', { class: 'muted', style: 'margin-bottom:12px' },
-            `You held out for ${s.wave} wave${s.wave === 1 ? '' : 's'}.`),
+            cleared ? 'Two bosses have fallen. The road to the next battlefield is open.'
+              : `You held out for ${s.wave} wave${s.wave === 1 ? '' : 's'}.`),
           el(
             'div',
             { class: 'result-stats' },
@@ -1153,7 +1188,7 @@ export class GameScreen {
             statBox('Gold earned', formatNumber(me.goldEarned), false),
           ),
         ),
-        tapButton('btn primary', () => this.opts.onRestart(), 'Play again'),
+        tapButton('btn primary', () => cleared ? this.opts.onAdvance() : this.opts.onRestart(), cleared ? 'Continue campaign' : 'Play again'),
         tapButton('btn ghost', () => this.opts.onLeave(), 'Back to menu'),
       ),
     );

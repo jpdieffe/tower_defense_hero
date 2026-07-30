@@ -16,7 +16,7 @@ import {
   type Fx, type Vec2,
 } from '../core/fixed';
 import { chance, nextInt, type RngHolder } from '../core/rng';
-import { buildMapRuntime, isBuildable, type MapRuntime } from '../content/maps';
+import { buildMapRuntime, isBuildSite, type MapRuntime } from '../content/maps';
 import { enemyDef, ENEMY, EnemyAbility } from '../content/enemies';
 import {
   BASE_STATS, computeTowerStats, MAX_TOWER_LEVEL, TOWER, TOWERS, towerDef, upgradeCost,
@@ -173,15 +173,10 @@ function cellOccupied(s: GameState, cx: number, cy: number): boolean {
 }
 
 function cmdBuild(ctx: Ctx, p: PlayerState, defId: number, cx: number, cy: number): void {
-  // Hero Edition rejects all player construction. Companion entities are
-  // created only by synchronized powers and items.
-  deny(ctx, p, cellCenterFx(cx), cellCenterFx(cy));
-  return;
-  /* istanbul ignore next -- retained shared tower code below */
   const s = ctx.s;
   const d = towerDef(defId);
   if (defId < 0 || defId >= TOWERS.length) return;
-  if (!isBuildable(ctx.rt, cx, cy) || cellOccupied(s, cx, cy)) {
+  if (!isBuildSite(ctx.rt, cx, cy) || cellOccupied(s, cx, cy)) {
     deny(ctx, p, cellCenterFx(cx), cellCenterFx(cy));
     return;
   }
@@ -530,6 +525,7 @@ function updatePhase(ctx: Ctx): void {
       s.phaseTimer = 0;
       refreshShop(s, s.wave + 1);
       emit(ctx, EventKind.WaveCleared, 0, 0, s.wave, reward, 0);
+      if (s.wave >= 10) s.gameOver = true;
     }
   }
 }

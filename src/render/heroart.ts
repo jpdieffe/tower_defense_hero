@@ -676,13 +676,12 @@ export function drawHeroSprite(
   // Camera-facing three-quarter presentation: mirror when travelling left,
   // then add a small directional lean. Crucially, the body remains upright.
   const facingX = Math.sin(state.rot);
-  const depth = Math.cos(state.rot);
-  const view: HeroArtState['view'] = depth > 0.45 ? 'back' : depth < -0.45 ? 'front' : 'side';
+  // Gameplay sprites use strong left/right silhouettes at every angle.
+  const view: HeroArtState['view'] = 'side';
   const pose: HeroArtState = { ...state, view };
   const mirror = facingX < -0.08 ? -1 : 1;
-  const profile = view === 'side' ? 0.86 : 1;
-  ctx.scale(size * mirror * profile, size * 1.08);
-  ctx.transform(1, 0, view === 'side' ? -0.16 : -0.08, 1, Math.abs(facingX) * 0.035, 0);
+  ctx.scale(size * mirror * 0.94, size * 1.08);
+  ctx.transform(1, 0, -0.04, 1, Math.abs(facingX) * 0.025, 0);
   ctx.lineJoin = 'round';
   ctx.miterLimit = 2;
   // A cool key light and warm ground bounce add depth without flattening each

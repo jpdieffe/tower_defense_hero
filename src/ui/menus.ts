@@ -94,22 +94,12 @@ export function renderSetup(root: HTMLElement, h: SetupHandlers): void {
     heroGrid.appendChild(btn);
   }
 
-  const mapGrid = el('div', { class: 'chooser' });
-  for (const m of MAPS) {
-    const btn = tapButton(
-        `choice${model.mapId === m.id ? ' selected' : ''}`,
-        () => {
-          if (!h.canEditMap) return;
-          model.mapId = m.id;
-          h.onChange();
-          selectChoice(mapGrid, btn);
-        },
-        el('div', { class: 'name' }, m.name),
-        el('div', { class: 'sub' }, m.blurb),
-        el('div', { class: 'sub' }, `${m.lanes.length} lane${m.lanes.length > 1 ? 's' : ''}`),
-      );
-    mapGrid.appendChild(btn);
-  }
+  const campaignMap = MAPS[model.mapId] ?? MAPS[0];
+  const mapGrid = el('div', { class: 'campaign-stage' },
+    el('div', { class: 'skill-kicker' }, `CAMPAIGN STAGE ${campaignMap.id + 1} / ${MAPS.length}`),
+    el('div', { class: 'name' }, campaignMap.name),
+    el('div', { class: 'sub' }, campaignMap.blurb),
+    el('div', { class: 'sub' }, `${campaignMap.lanes.length} route${campaignMap.lanes.length > 1 ? 's' : ''} · Defeat two bosses to advance`));
 
   const diffGrid = el('div', { class: 'chooser' });
   DIFFICULTIES.forEach((d, i) => {
@@ -140,7 +130,7 @@ export function renderSetup(root: HTMLElement, h: SetupHandlers): void {
         el(
           'div',
           { class: 'card' },
-          el('h2', {}, h.canEditMap ? 'Battlefield' : 'Battlefield (host decides)'),
+          el('h2', {}, 'Campaign battlefield'),
           mapGrid,
           el('h3', {}, 'Difficulty'),
           diffGrid,
@@ -283,7 +273,8 @@ export function renderHelp(root: HTMLElement, onBack: () => void): void {
           el('h3', {}, 'Controls'),
           el('div', { class: 'muted' },
             '• Tap open ground to send your hero there.\n'
-            + '• Tap the skill button to use your hero ability (some need you to drag and aim).\n'
+            + '• Tap a gold flag to build one of four base towers. Tap a tower later to choose its upgrade path.\n'
+            + '• Powers live directly in the bottom row; some need you to drag and aim.\n'
             + '• Learn a new branch power whenever your hero levels up.\n'
             + '• Between waves, open the shop for relics, consumables, and persistent summons.',
             ),

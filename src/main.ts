@@ -4,6 +4,7 @@ import { audio } from './audio/audio';
 import { music } from './audio/music';
 import { atlas } from './render/atlas';
 import { HEROES } from './content/heroes';
+import { MAPS } from './content/maps';
 import { inputDelayForRtt, Lockstep, soloLockstep } from './net/lockstep';
 import {
   makeRoomCode, MAX_PLAYERS, normaliseCode, PROTOCOL_VERSION, randomSeed,
@@ -61,6 +62,8 @@ class App {
   private joinStatus: string | null = null;
 
   async boot(): Promise<void> {
+    const savedStage = Number.parseInt(localStorage.getItem('bulwark-campaign-stage') ?? '0', 10);
+    this.setup.mapId = Math.max(0, Math.min(MAPS.length - 1, Number.isFinite(savedStage) ? savedStage : 0));
     // Any first touch unlocks audio on iOS/Android.
     const unlock = (): void => {
       audio.unlock();
@@ -511,7 +514,30 @@ class App {
         this.showTitle();
       },
       onRestart: () => this.restart(multiplayer),
+      onAdvance: () => this.advanceCampaign(multiplayer),
     });
+  }
+
+  private advanceCampaign(multiplayer: boolean): void {
+    if (multiplayer && !this.isHost) {
+      toast('The host continues the campaign for the party.');
+      return;
+    }
+    const current = this.lastMatch?.cfg.mapId ?? this.setup.mapId;
+    const next = Math.min(MAPS.length - 1, current + 1);
+    this.setup.mapId = next;
+    localStorage.setItem('bulwark-campaign-stage', String(next));
+    if (!multiplayer) {
+      this.game?.destroy(); this.game = null; this.startSolo();
+      return;
+    }
+    const prev = this.lastMatch;
+    if (!prev) return;
+    const cfg: MatchConfig = { ...prev.cfg, mapId: next, seed: randomSeed() };
+    const inputDelay = inputDelayForRtt(this.rttMs);
+    this.transport?.send({ t: 'start', match: cfg, inputDelay });
+    this.game?.destroy(); this.game = null;
+    this.beginNetworkedMatch(cfg, inputDelay);
   }
 
   private restart(multiplayer: boolean): void {
