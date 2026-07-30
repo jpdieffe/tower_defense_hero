@@ -1450,6 +1450,9 @@ function squadSize(s: GameState, towerId: number): number {
 function maintainSquad(ctx: Ctx, t: Tower, st: TowerStats): void {
   const s = ctx.s;
   if (t.cd > 0) return;
+  // Power-summoned creature packs are finite: create the initial pack once,
+  // then let injuries and deaths remain meaningful.
+  if (t.temp === -2 && t.charge >= st.unitCount) return;
   const alive = squadSize(s, t.id);
   if (alive >= st.unitCount) return;
 
@@ -1480,9 +1483,10 @@ function maintainSquad(ctx: Ctx, t: Tower, st: TowerStats): void {
     anim: 0,
   };
   s.soldiers.push(sd);
+  if (t.temp === -2) t.charge++;
   // Between waves the hut refills almost instantly, so every fight starts
   // with a full line.
-  t.cd = s.phase === Phase.Build ? sec(0.4) : Math.max(1, st.unitRespawn);
+  t.cd = t.temp === -2 ? sec(0.15) : s.phase === Phase.Build ? sec(0.4) : Math.max(1, st.unitRespawn);
   emit(ctx, EventKind.SoldierSpawn, x, y, t.defId, slot, t.owner);
 }
 
@@ -1579,7 +1583,7 @@ function updateSoldier(ctx: Ctx, t: Tower, st: TowerStats, sd: Soldier): void {
     sd.hp -= Math.max(1, Math.floor(dps / 5) - st.unitArmor);
   }
 
-  if (!inCombat && st.unitRegen > 0 && sd.hp < sd.maxHp) {
+  if (t.temp !== -2 && !inCombat && st.unitRegen > 0 && sd.hp < sd.maxHp) {
     sd.regenAcc += st.unitRegen;
     const heal = Math.floor(sd.regenAcc / TICK_RATE);
     if (heal > 0) {
